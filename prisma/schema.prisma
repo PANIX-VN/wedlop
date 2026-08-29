@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Student {
+  id    String @id
+  stt   Int
+  name  String
+  group Int
+}
+
+model Rule {
+  id       String @id
+  category String
+  title    String
+  points   Int
+  unit     String
+}
+
+model Seating {
+  id         String   @id @default("current")
+  layoutJson String
+  updatedAt  DateTime @updatedAt
+}
+
+model Attendance {
+  date        String   @id // YYYY-MM-DD
+  recordsJson String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Duty {
+  date                 String   @id // YYYY-MM-DD
+  dayName              String
+  type                 String
+  assignedStudentsJson String
+  customNote           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model EmulationLog {
+  id          String   @id
+  studentId   String
+  studentName String
+  ruleTitle   String
+  points      Int
+  date        String
+  note        String?
+  createdAt   DateTime @default(now())
+}
