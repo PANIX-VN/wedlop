@@ -1,5 +1,8 @@
 {
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
+  "/api/attendance/route": "/api/attendance",
+  "/api/duty/route": "/api/duty",
+  "/api/seating/route": "/api/seating",
   "/page": "/"
 }

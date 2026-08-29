@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Student, AttendanceStatus, AttendanceRecord } from '../../data/types';
-import { Calendar, CheckCircle2, XCircle, Clock, AlertTriangle, Save, CheckCheck, ShieldAlert, ChevronLeft, ChevronRight, BarChart3, ListFilter, Search } from 'lucide-react';
+import { Student, AttendanceStatus, AttendanceRecord, SessionType } from '../../data/types';
+import { Calendar, CheckCircle2, XCircle, Clock, AlertTriangle, Save, CheckCheck, ShieldAlert, BarChart3, ListFilter, BookOpen, Wrench } from 'lucide-react';
 
 interface AttendanceManagerProps {
   students: Student[];
@@ -37,16 +37,22 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
   // Mode: 'daily' | 'weekly' | 'monthly'
   const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
-  // Selected states
+  // Active Session: 'hoc_chinh' | 'hoc_nghe'
+  const [activeSession, setActiveSession] = useState<SessionType>('hoc_chinh');
+
+  // Selected date & month
   const [selectedDate, setSelectedDate] = useState<string>(vnToday);
   const [selectedMonth, setSelectedMonth] = useState<string>(vnToday.substring(0, 7)); // YYYY-MM
   const [currentMap, setCurrentMap] = useState<Record<string, AttendanceStatus>>({});
   const [isSavedNotice, setIsSavedNotice] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
 
-  // Load existing records for selectedDate or default all to 'present'
+  // Load existing record for selectedDate & activeSession or default to 'present'
   useEffect(() => {
-    const existing = attendanceRecords.find(r => r.date === selectedDate);
+    const existing = attendanceRecords.find(
+      r => r.date === selectedDate && (r.sessionType === activeSession || (!r.sessionType && activeSession === 'hoc_chinh'))
+    );
+
     if (existing) {
       setCurrentMap(existing.records);
     } else {
@@ -56,7 +62,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
       });
       setCurrentMap(initialMap);
     }
-  }, [selectedDate, attendanceRecords, students]);
+  }, [selectedDate, activeSession, attendanceRecords, students]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     if (!canTakeAttendance) return;
@@ -79,13 +85,14 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
     if (!canTakeAttendance) return;
     onSaveRecord({
       date: selectedDate,
+      sessionType: activeSession,
       records: currentMap,
     });
     setIsSavedNotice(true);
     setTimeout(() => setIsSavedNotice(false), 3000);
   };
 
-  // Compute daily stats
+  // Compute daily stats for active session
   const dailyStats = React.useMemo(() => {
     let present = 0;
     let excused = 0;
@@ -106,7 +113,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
   const weekDays = React.useMemo(() => {
     const curr = new Date(selectedDate);
     const day = curr.getDay();
-    const diffToMon = curr.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    const diffToMon = curr.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(curr.setDate(diffToMon));
 
     const days: { dateStr: string; label: string }[] = [];
@@ -124,9 +131,11 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
     return days;
   }, [selectedDate]);
 
-  // Compute monthly stats for all students
+  // Compute monthly stats for selected session
   const monthlyStats = React.useMemo(() => {
-    const recordsInMonth = attendanceRecords.filter(r => r.date.startsWith(selectedMonth));
+    const recordsInMonth = attendanceRecords.filter(
+      r => r.date.startsWith(selectedMonth) && (r.sessionType === activeSession || (!r.sessionType && activeSession === 'hoc_chinh'))
+    );
     const totalDaysRecorded = recordsInMonth.length;
 
     const statsMap = new Map<
@@ -155,7 +164,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
     });
 
     return { totalDaysRecorded, statsMap };
-  }, [attendanceRecords, selectedMonth, students]);
+  }, [attendanceRecords, selectedMonth, activeSession, students]);
 
   const filteredStudents = students.filter(s =>
     s.name.toLowerCase().includes(searchFilter.toLowerCase())
@@ -186,12 +195,12 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h2 className="text-base font-bold text-slate-800">Điểm Danh Lớp 11A7 (Lưu Vĩnh Viễn)</h2>
+              <h2 className="text-base font-bold text-slate-800">Điểm Danh Lớp 11A7</h2>
               <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-300">
                 Giờ VN: {vnToday}
               </span>
             </div>
-            <p className="text-xs text-slate-500">Quản lý điểm danh lưu trữ dài hạn, tra cứu theo Ngày, Tuần & Tháng</p>
+            <p className="text-xs text-slate-500">Phân chia 2 mục điểm danh riêng biệt: Học Chính và Học Nghề</p>
           </div>
         </div>
 
@@ -230,13 +239,40 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
         </div>
       </div>
 
+      {/* SESSION SELECTOR (HỌC CHÍNH VS HỌC NGHỀ) */}
+      <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-200 flex items-center justify-center gap-3">
+        <button
+          onClick={() => setActiveSession('hoc_chinh')}
+          className={`flex-1 max-w-xs py-2.5 px-4 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-2 ${
+            activeSession === 'hoc_chinh'
+              ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-300'
+              : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>📘 Điểm Danh HỌC CHÍNH</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSession('hoc_nghe')}
+          className={`flex-1 max-w-xs py-2.5 px-4 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-2 ${
+            activeSession === 'hoc_nghe'
+              ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-300'
+              : 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700'
+          }`}
+        >
+          <Wrench className="w-4 h-4" />
+          <span>🛠️ Điểm Danh HỌC NGHỀ</span>
+        </button>
+      </div>
+
       {/* ----------------- MODE 1: DAILY ATTENDANCE ----------------- */}
       {viewMode === 'daily' && (
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-                <span className="text-xs font-semibold text-slate-600">Chọn ngày điểm danh:</span>
+                <span className="text-xs font-semibold text-slate-600">Ngày điểm danh:</span>
                 <input
                   type="date"
                   value={selectedDate}
@@ -264,9 +300,13 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
 
                   <button
                     onClick={handleSave}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
+                    className={`px-4 py-2 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1.5 ${
+                      activeSession === 'hoc_chinh'
+                        ? 'bg-blue-600 hover:bg-blue-700'
+                        : 'bg-amber-600 hover:bg-amber-700'
+                    }`}
                   >
-                    <Save className="w-4 h-4" /> Lưu Điểm Danh
+                    <Save className="w-4 h-4" /> Lưu Điểm Danh ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'})
                   </button>
                 </>
               ) : (
@@ -280,7 +320,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           {/* Toast Notification */}
           {isSavedNotice && (
             <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Đã lưu thông tin điểm danh ngày {selectedDate} thành công!
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Đã lưu thông tin điểm danh [{activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}] ngày {selectedDate} thành công!
             </div>
           )}
 
@@ -322,7 +362,10 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           {/* Student List Table */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-sm">Danh Sách Điểm Danh Ngày ({filteredStudents.length} học sinh)</h3>
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                <span>Danh Sách Điểm Danh - {activeSession === 'hoc_chinh' ? '📘 HỌC CHÍNH' : '🛠️ HỌC NGHỀ'}</span>
+                <span className="text-xs text-slate-400 font-normal">({filteredStudents.length} học sinh)</span>
+              </h3>
 
               <div className="w-48 sm:w-64">
                 <input
@@ -418,7 +461,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold text-slate-700">Tuần từ ngày:</span>
+              <span className="text-xs font-bold text-slate-700">Tuần ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}):</span>
               <span className="text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl">
                 {weekDays[0].dateStr} → {weekDays[5].dateStr}
               </span>
@@ -453,7 +496,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                       <td className="py-3 px-4 text-center font-bold text-slate-500">{student.stt}</td>
                       <td className="py-3 px-4 font-bold text-slate-800">{student.name}</td>
                       {weekDays.map(w => {
-                        const rec = attendanceRecords.find(r => r.date === w.dateStr);
+                        const rec = attendanceRecords.find(
+                          r => r.date === w.dateStr && (r.sessionType === activeSession || (!r.sessionType && activeSession === 'hoc_chinh'))
+                        );
                         const status = rec ? rec.records[student.id] : undefined;
                         return (
                           <td key={w.dateStr} className="py-3 px-3 text-center text-base">
@@ -485,7 +530,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
             </div>
 
             <div className="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
-              Tổng số ngày đã điểm danh trong tháng {selectedMonth}: <span className="font-extrabold text-blue-700">{monthlyStats.totalDaysRecorded} buổi</span>
+              Tổng số ngày điểm danh ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}) tháng {selectedMonth}: <span className="font-extrabold text-blue-700">{monthlyStats.totalDaysRecorded} buổi</span>
             </div>
           </div>
 

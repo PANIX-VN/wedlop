@@ -40,6 +40,24 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/attendance",
+      "regex": "^/api/attendance(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/attendance(?:/)?$"
+    },
+    {
+      "page": "/api/duty",
+      "regex": "^/api/duty(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/duty(?:/)?$"
+    },
+    {
+      "page": "/api/seating",
+      "regex": "^/api/seating(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/seating(?:/)?$"
     }
   ],
   "dataRoutes": [],

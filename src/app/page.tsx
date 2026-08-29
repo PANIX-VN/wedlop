@@ -55,7 +55,7 @@ export default function Home() {
 
   const handleSaveAttendance = (newRecord: AttendanceRecord) => {
     const updated = [
-      ...attendanceRecords.filter(r => r.date !== newRecord.date),
+      ...attendanceRecords.filter(r => !(r.date === newRecord.date && (r.sessionType === newRecord.sessionType || (!r.sessionType && newRecord.sessionType === 'hoc_chinh')))),
       newRecord,
     ];
     setAttendanceRecords(updated);
