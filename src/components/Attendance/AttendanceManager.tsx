@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Student, AttendanceStatus, AttendanceRecord, SessionType } from '../../data/types';
+import { getVietnamTodayString, formatVietnamDateDisplay } from '../../utils/time';
 import { Calendar, CheckCircle2, XCircle, Clock, AlertTriangle, Save, CheckCheck, ShieldAlert, BarChart3, ListFilter, BookOpen, Wrench } from 'lucide-react';
 
 interface AttendanceManagerProps {
@@ -9,21 +10,6 @@ interface AttendanceManagerProps {
   attendanceRecords: AttendanceRecord[];
   onSaveRecord: (record: AttendanceRecord) => void;
   canTakeAttendance: boolean;
-}
-
-export function getVietnamTodayString(): string {
-  try {
-    const formatter = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Asia/Ho_Chi_Minh',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-    return formatter.format(new Date()); // YYYY-MM-DD
-  } catch (e) {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
-  }
 }
 
 export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
@@ -109,9 +95,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
     return { present, excused, unexcused, late };
   }, [currentMap]);
 
-  // Compute week range from selectedDate (Mon to Sat)
+  // Compute week range from selectedDate (Mon to Sat) in Vietnam Time
   const weekDays = React.useMemo(() => {
-    const curr = new Date(selectedDate);
+    const curr = new Date(selectedDate + 'T00:00:00');
     const day = curr.getDay();
     const diffToMon = curr.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(curr.setDate(diffToMon));
@@ -122,8 +108,12 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
     for (let i = 0; i < 6; i++) {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const dateNum = String(d.getDate()).padStart(2, '0');
+
       days.push({
-        dateStr: d.toISOString().split('T')[0],
+        dateStr: `${year}-${month}-${dateNum}`,
         label: labels[i],
       });
     }
@@ -197,10 +187,10 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
             <div className="flex items-center space-x-2">
               <h2 className="text-base font-bold text-slate-800">Điểm Danh Lớp 11A7</h2>
               <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-300">
-                Giờ VN: {vnToday}
+                Giờ Việt Nam (GMT+7): {formatVietnamDateDisplay(vnToday)}
               </span>
             </div>
-            <p className="text-xs text-slate-500">Phân chia 2 mục điểm danh riêng biệt: Học Chính và Học Nghề</p>
+            <p className="text-xs text-slate-500">Đồng bộ chuẩn giờ Việt Nam. Phân chia 2 mục: Học Chính & Học Nghề</p>
           </div>
         </div>
 
@@ -284,7 +274,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                 onClick={() => setSelectedDate(vnToday)}
                 className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold border border-blue-200 transition-all"
               >
-                Hôm Nay ({vnToday})
+                Hôm Nay ({formatVietnamDateDisplay(vnToday)})
               </button>
             </div>
 
@@ -320,7 +310,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           {/* Toast Notification */}
           {isSavedNotice && (
             <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Đã lưu thông tin điểm danh [{activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}] ngày {selectedDate} thành công!
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Đã lưu thông tin điểm danh [{activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}] ngày {formatVietnamDateDisplay(selectedDate)} thành công!
             </div>
           )}
 
@@ -463,7 +453,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
             <div className="flex items-center space-x-2">
               <span className="text-xs font-bold text-slate-700">Tuần ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}):</span>
               <span className="text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl">
-                {weekDays[0].dateStr} → {weekDays[5].dateStr}
+                {formatVietnamDateDisplay(weekDays[0].dateStr)} → {formatVietnamDateDisplay(weekDays[5].dateStr)}
               </span>
             </div>
 
@@ -485,7 +475,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                     {weekDays.map(w => (
                       <th key={w.dateStr} className="py-3 px-3 text-center">
                         <div>{w.label}</div>
-                        <div className="text-[9px] font-mono text-slate-400">{w.dateStr.split('-').slice(1).join('/')}</div>
+                        <div className="text-[9px] font-mono text-slate-400">{formatVietnamDateDisplay(w.dateStr)}</div>
                       </th>
                     ))}
                   </tr>

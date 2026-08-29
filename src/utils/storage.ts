@@ -1,5 +1,6 @@
 import { Student, RuleItem, ColumnRow, AttendanceRecord, EmulationLog, DynamicDutyRecord } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT } from '../data/initialData';
+import { getVietnamCutoffDateString } from './time';
 
 const STORAGE_KEYS = {
   STUDENTS: '11a7_students',
@@ -104,10 +105,8 @@ export const loadDutyRecords = (): DynamicDutyRecord[] => {
 
 export const saveDutyRecords = (records: DynamicDutyRecord[]) => {
   if (typeof window === 'undefined') return;
-  // Retain records for last 14 days
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 14);
-  const cutoffStr = cutoffDate.toISOString().split('T')[0];
+  // Retain records for last 14 days in Vietnam Time
+  const cutoffStr = getVietnamCutoffDateString(14);
 
   const recentRecords = records.filter(r => r.date >= cutoffStr);
   localStorage.setItem(STORAGE_KEYS.DUTY_RECORDS, JSON.stringify(recentRecords));
