@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LayoutGrid, ClipboardCheck, Award, FileSearch, Calendar, Users, LogIn, LogOut, ExternalLink, Clock, Sparkles, Moon, Sun, ShieldAlert } from 'lucide-react';
+import { LayoutGrid, ClipboardCheck, Award, FileSearch, Calendar, Users, LogIn, LogOut, ExternalLink, Clock, Sparkles, Moon, Sun, ShieldAlert, UserCog } from 'lucide-react';
 import { AuthUser } from '../data/types';
 import { EMULATION_SHEET_URL } from '../data/accounts';
 
@@ -15,6 +15,7 @@ interface NavbarProps {
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
   isAdmin?: boolean;
+  canManageStudents?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -27,6 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   theme,
   onToggleTheme,
   isAdmin = false,
+  canManageStudents = false,
 }) => {
   // Live Vietnam Clock
   const [vnTimeStr, setVnTimeStr] = useState<string>('');
@@ -52,12 +54,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const tabs = [
-    { id: 'seating', label: 'Sơ Đồ Chỗ Ngồi', icon: LayoutGrid, external: false },
-    { id: 'attendance', label: 'Điểm Danh', icon: ClipboardCheck, external: false },
-    { id: 'emulation', label: 'Điểm Thi Đua', icon: Award, external: true, url: EMULATION_SHEET_URL },
-    { id: 'rules', label: 'Tra Cứu Lỗi', icon: FileSearch, external: false },
-    { id: 'duty', label: 'Lịch Trực Nhật', icon: Calendar, external: false },
-    ...(isAdmin ? [{ id: 'admin', label: 'Quản Lý TK', icon: ShieldAlert, external: false }] : []),
+    { id: 'seating', label: 'Sơ Đồ Lớp', icon: LayoutGrid, external: false, color: null },
+    { id: 'attendance', label: 'Điểm Danh', icon: ClipboardCheck, external: false, color: null },
+    { id: 'emulation', label: 'Thi Đua', icon: Award, external: true, url: EMULATION_SHEET_URL, color: null },
+    { id: 'rules', label: 'Tra Cứu', icon: FileSearch, external: false, color: null },
+    { id: 'duty', label: 'Trực Nhật', icon: Calendar, external: false, color: null },
+    ...(canManageStudents ? [{ id: 'students', label: 'Học Sinh', icon: UserCog, external: false, color: 'blue' as const }] : []),
+    ...(isAdmin ? [{ id: 'admin', label: 'Quản Lý TK', icon: ShieldAlert, external: false, color: 'red' as const }] : []),
   ];
 
   const getRoleBadgeStyle = (role?: string) => {
@@ -139,18 +142,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                      tab.id === 'admin'
+                      tab.color === 'red'
                         ? isActive
                           ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-sm'
                           : 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 border border-red-200/60 dark:border-red-800/50'
+                        : tab.color === 'blue'
+                        ? isActive
+                          ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm'
+                          : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/50'
                         : isActive
                         ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 font-extrabold shadow-sm border border-slate-200/80 dark:border-slate-700'
                         : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800'
                     }`}
                   >
                     <Icon className={`w-3.5 h-3.5 ${
-                      tab.id === 'admin'
+                      tab.color === 'red'
                         ? isActive ? 'text-white' : 'text-red-500 dark:text-red-400'
+                        : tab.color === 'blue'
+                        ? isActive ? 'text-white' : 'text-blue-500 dark:text-blue-400'
                         : isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
                     }`} />
                     <span>{tab.label}</span>

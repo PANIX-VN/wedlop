@@ -77,6 +77,7 @@ export function getRolePermissions(role?: UserRole) {
       canEditDuty: false,
       canEditSeating: false,
       canUploadRules: false,
+      canManageStudents: false,
     };
   }
 
@@ -89,6 +90,7 @@ export function getRolePermissions(role?: UserRole) {
         canEditDuty: true,
         canEditSeating: true,
         canUploadRules: true,
+        canManageStudents: true,
       };
 
     case 'GVCN':
@@ -100,6 +102,7 @@ export function getRolePermissions(role?: UserRole) {
         canEditDuty: true,
         canEditSeating: true,
         canUploadRules: true,
+        canManageStudents: true,
       };
 
     case 'LỚP TRƯỞNG':
@@ -110,6 +113,7 @@ export function getRolePermissions(role?: UserRole) {
         canEditDuty: false,
         canEditSeating: false,
         canUploadRules: false,
+        canManageStudents: false,
       };
 
     case 'LỚP PHÓ LAO ĐỘNG':
@@ -120,6 +124,7 @@ export function getRolePermissions(role?: UserRole) {
         canEditDuty: true,
         canEditSeating: false,
         canUploadRules: false,
+        canManageStudents: false,
       };
 
     case 'LỚP PHÓ KỈ LUẬT':
@@ -132,6 +137,7 @@ export function getRolePermissions(role?: UserRole) {
         canEditDuty: false,
         canEditSeating: false,
         canUploadRules: false,
+        canManageStudents: false,
       };
   }
 }
