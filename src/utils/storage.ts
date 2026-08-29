@@ -10,7 +10,61 @@ const STORAGE_KEYS = {
   EMULATION_LOGS: '11a7_emulation_logs',
   DUTY_RECORDS: '11a7_duty_records',
   AUTH_USER: '11a7_auth_user',
+  CUSTOM_PASSWORDS: '11a7_custom_passwords',
 };
+
+// Map of username -> custom password (overrides default)
+export const loadCustomPasswords = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.CUSTOM_PASSWORDS);
+    return data ? JSON.parse(data) : {};
+  } catch {
+    return {};
+  }
+};
+
+export const saveCustomPassword = (username: string, newPassword: string) => {
+  if (typeof window === 'undefined') return;
+  const existing = loadCustomPasswords();
+  existing[username] = newPassword;
+  localStorage.setItem(STORAGE_KEYS.CUSTOM_PASSWORDS, JSON.stringify(existing));
+
+  // Sync to Cloud DB
+  fetch('/api/password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, newPassword }),
+  }).catch(() => {});
+};
+
+export const getEffectivePassword = async (username: string, defaultPassword: string): Promise<string> => {
+  // 1. Check localStorage first (fastest)
+  const customPwds = loadCustomPasswords();
+  if (customPwds[username]) return customPwds[username];
+
+  // 2. Try Cloud DB
+  try {
+    const res = await fetch(`/api/password?username=${encodeURIComponent(username)}`);
+    const json = await res.json();
+    if (json.success && json.data?.password) {
+      // Cache in localStorage for next time
+      const existing = loadCustomPasswords();
+      existing[username] = json.data.password;
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_PASSWORDS, JSON.stringify(existing));
+      return json.data.password;
+    }
+  } catch {}
+
+  // 3. Fall back to default from accounts.ts
+  return defaultPassword;
+};
+
+export const hasChangedPassword = (username: string): boolean => {
+  const customPwds = loadCustomPasswords();
+  return !!customPwds[username];
+};
+
 
 export const loadStudents = (): Student[] => {
   if (typeof window === 'undefined') return INITIAL_STUDENTS;
