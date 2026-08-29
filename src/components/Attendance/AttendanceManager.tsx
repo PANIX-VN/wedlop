@@ -212,8 +212,8 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
             onClick={() => setViewMode('daily')}
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               viewMode === 'daily'
-                ? 'bg-white text-blue-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Calendar className="w-3.5 h-3.5" /> Theo Ngày
@@ -222,8 +222,8 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
             onClick={() => setViewMode('weekly')}
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               viewMode === 'weekly'
-                ? 'bg-white text-blue-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <ListFilter className="w-3.5 h-3.5" /> Theo Tuần
@@ -232,8 +232,8 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
             onClick={() => setViewMode('monthly')}
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               viewMode === 'monthly'
-                ? 'bg-white text-blue-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" /> Theo Tháng
@@ -248,7 +248,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           className={`flex-1 max-w-sm py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-2 ${
             activeSession === 'hoc_chinh'
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 ring-2 ring-blue-400'
-              : 'bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700 border border-slate-200'
+              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700'
           }`}
         >
           <BookOpen className="w-4 h-4" />
@@ -260,7 +260,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           className={`flex-1 max-w-sm py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-2 ${
             activeSession === 'hoc_nghe'
               ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20 ring-2 ring-amber-400'
-              : 'bg-slate-50 text-slate-600 hover:bg-amber-50 hover:text-amber-700 border border-slate-200'
+              : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-slate-700 hover:text-amber-700 dark:hover:text-amber-400 border border-slate-200 dark:border-slate-700'
           }`}
         >
           <Wrench className="w-4 h-4" />
@@ -377,7 +377,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                   selectedGroupFilter === 'all'
                     ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
                 Tất Cả ({students.length})
@@ -389,7 +389,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                     selectedGroupFilter === g
                       ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   Tổ {g}
@@ -405,12 +405,12 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                 placeholder="Lọc tên học sinh..."
                 value={searchFilter}
                 onChange={e => setSearchFilter(e.target.value)}
-                className="w-full pl-8 pr-7 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-blue-500"
+                className="w-full pl-8 pr-7 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-blue-500"
               />
               {searchFilter && (
                 <button
                   onClick={() => setSearchFilter('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -419,9 +419,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           </div>
 
           {/* Student List Table & Mobile Cards */}
-          <div className="glass-card rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
+          <div className="glass-card rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <h3 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-2">
                 <span>Danh Sách Học Sinh - {activeSession === 'hoc_chinh' ? '📘 HỌC CHÍNH' : '🛠️ HỌC NGHỀ'}</span>
                 <span className="text-xs text-slate-400 font-normal">({filteredStudents.length} học sinh)</span>
               </h3>
@@ -430,25 +430,25 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/80 text-slate-500 text-[11px] font-black uppercase border-b border-slate-200">
+                  <tr className="bg-slate-50/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase border-b border-slate-200 dark:border-slate-700">
                     <th className="py-3.5 px-4 w-12 text-center">STT</th>
                     <th className="py-3.5 px-4">Họ và Tên</th>
                     <th className="py-3.5 px-4 text-center">Tổ</th>
                     <th className="py-3.5 px-4 text-center">Trạng Thái Điểm Danh</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs font-medium">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
                   {filteredStudents.map(student => {
                     const status = currentMap[student.id] || 'present';
 
                     return (
-                      <tr key={student.id} className="hover:bg-slate-50/90 transition-colors">
+                      <tr key={student.id} className="hover:bg-slate-50/90 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="py-3 px-4 text-center font-black text-slate-400">{student.stt}</td>
                         <td className="py-3 px-4">
-                          <span className="font-bold text-slate-800 text-xs sm:text-sm">{student.name}</span>
+                          <span className="font-bold text-slate-800 dark:text-white text-xs sm:text-sm">{student.name}</span>
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
                             Tổ {student.group}
                           </span>
                         </td>
@@ -460,7 +460,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                               className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 ${
                                 status === 'present'
                                   ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300 scale-102'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-700 dark:hover:text-emerald-300'
                               } ${!canTakeAttendance ? 'cursor-default opacity-85' : ''}`}
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" /> Có mặt
@@ -472,7 +472,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                               className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 ${
                                 status === 'late'
                                   ? 'bg-amber-500 text-white shadow-sm ring-2 ring-amber-300 scale-102'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-700 dark:hover:text-amber-300'
                               } ${!canTakeAttendance ? 'cursor-default opacity-85' : ''}`}
                             >
                               <Clock className="w-3.5 h-3.5" /> Đi muộn
@@ -484,7 +484,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                               className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 ${
                                 status === 'excused'
                                   ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-300 scale-102'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-sky-50 hover:text-sky-700'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:text-sky-700 dark:hover:text-sky-300'
                               } ${!canTakeAttendance ? 'cursor-default opacity-85' : ''}`}
                             >
                               <AlertTriangle className="w-3.5 h-3.5" /> Có phép
@@ -496,7 +496,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                               className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 ${
                                 status === 'unexcused'
                                   ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-300 scale-102'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-700'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300'
                               } ${!canTakeAttendance ? 'cursor-default opacity-85' : ''}`}
                             >
                               <XCircle className="w-3.5 h-3.5" /> Không phép

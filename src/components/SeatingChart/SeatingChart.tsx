@@ -182,12 +182,12 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
             placeholder="Tìm tên học sinh trên sơ đồ..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full pl-9 pr-8 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -196,15 +196,15 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
 
         {/* Status badges */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 font-bold rounded-xl border border-emerald-200 shadow-2xs">
-            <UserCheck className="w-3.5 h-3.5 text-emerald-600" /> Đã xếp: {assignedStudentIds.size}/{students.length}
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-bold rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+            <UserCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Đã xếp: {assignedStudentIds.size}/{students.length}
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-800 font-bold rounded-xl border border-blue-200 shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 font-bold rounded-xl border border-blue-200 dark:border-blue-800 shadow-2xs">
             Tổng số chỗ: {totalSeatsCapacity}
           </span>
           {unassignedStudents.length > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 font-bold rounded-xl border border-amber-200 shadow-2xs animate-pulse">
-              <Users className="w-3.5 h-3.5 text-amber-600" /> Chưa xếp: {unassignedStudents.length}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold rounded-xl border border-amber-200 dark:border-amber-800 shadow-2xs animate-pulse">
+              <Users className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Chưa xếp: {unassignedStudents.length}
             </span>
           )}
         </div>
@@ -220,12 +220,12 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
           {canEditSeating ? (
             <button
               onClick={() => setIsConfigOpen(true)}
-              className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 shadow-2xs transition-all flex items-center gap-1.5"
+              className="px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 shadow-2xs transition-all flex items-center gap-1.5"
             >
-              <Settings className="w-4 h-4 text-slate-500" /> Tùy Chỉnh Bàn 3 Chỗ
+              <Settings className="w-4 h-4 text-slate-500 dark:text-slate-400" /> Tùy Chỉnh Bàn 3 Chỗ
             </button>
           ) : (
-            <span className="text-xs text-slate-500 bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl flex items-center gap-1 font-semibold">
+            <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl flex items-center gap-1 font-semibold">
               <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Quyền: Chỉ Xem
             </span>
           )}
@@ -241,7 +241,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
               selectedColumnFilter === 'all'
                 ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
             }`}
           >
             Toàn Lớp (3 Dãy)
@@ -253,7 +253,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 selectedColumnFilter === col.id
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
               {col.name.split(' ')[0]} {col.name.split(' ')[1] || ''}
@@ -269,7 +269,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
       {/* Main Classroom Grid & Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Classroom Grid */}
-        <div className="lg:col-span-3 bg-slate-100/90 p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+        <div className="lg:col-span-3 bg-slate-100/90 dark:bg-slate-900/90 p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
           {/* 3D Chalkboard Banner */}
           <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white text-center py-3.5 px-6 rounded-2xl shadow-lg font-black tracking-widest text-xs sm:text-sm uppercase flex items-center justify-center gap-3 border-b-4 border-slate-950">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
@@ -286,17 +286,17 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
               : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
           }`}>
             {displayedColumns.map(col => (
-              <div key={col.id} className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-sm space-y-3.5">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-900 font-black text-xs text-center py-2 rounded-xl border border-blue-100 tracking-wide uppercase shadow-2xs">
+              <div key={col.id} className="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-3.5">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/60 dark:to-indigo-950/60 text-blue-900 dark:text-blue-300 font-black text-xs text-center py-2 rounded-xl border border-blue-100 dark:border-blue-900/60 tracking-wide uppercase shadow-2xs">
                   {col.name}
                 </div>
 
                 <div className="space-y-3">
                   {col.desks.map(desk => (
-                    <div key={desk.id} className="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 rounded-2xl p-3 space-y-2 shadow-2xs transition-all">
-                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 px-1">
-                        <span className="text-slate-700">{desk.name}</span>
-                        <span className="text-[10px] bg-slate-200/80 text-slate-700 font-extrabold px-2 py-0.5 rounded-full">
+                    <div key={desk.id} className="bg-slate-50/80 dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700 rounded-2xl p-3 space-y-2 shadow-2xs transition-all">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 px-1">
+                        <span className="text-slate-700 dark:text-slate-200">{desk.name}</span>
+                        <span className="text-[10px] bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold px-2 py-0.5 rounded-full">
                           {desk.capacity} chỗ
                         </span>
                       </div>
@@ -336,9 +336,9 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                               } ${
                                 student
                                   ? isHighlighted
-                                    ? 'bg-amber-100 border-amber-500 text-amber-950 shadow-md ring-4 ring-amber-400/40 animate-pulse'
-                                    : 'bg-white border-blue-200 text-slate-800 shadow-xs hover:border-blue-400 hover:shadow-md'
-                                  : 'bg-slate-100/70 border-dashed border-slate-300 text-slate-400 hover:border-blue-400 hover:bg-blue-50/50'
+                                    ? 'bg-amber-100 dark:bg-amber-950/80 border-amber-500 text-amber-950 dark:text-amber-200 shadow-md ring-4 ring-amber-400/40 animate-pulse'
+                                    : 'bg-white dark:bg-slate-800 border-blue-200 dark:border-blue-900/60 text-slate-800 dark:text-slate-100 shadow-xs hover:border-blue-400 hover:shadow-md'
+                                  : 'bg-slate-100/70 dark:bg-slate-900/70 border-dashed border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30'
                               }`}
                             >
                               {student ? (

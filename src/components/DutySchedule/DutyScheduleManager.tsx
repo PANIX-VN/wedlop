@@ -202,8 +202,8 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                   isSelected
                     ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white border-blue-600 shadow-md shadow-blue-500/20 ring-2 ring-blue-300'
                     : item.isToday
-                    ? 'bg-amber-50/90 border-amber-300 text-amber-900 font-bold ring-1 ring-amber-300'
-                    : 'bg-slate-50/90 border-slate-200 text-slate-700 hover:bg-slate-100'
+                    ? 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-300 font-bold ring-1 ring-amber-300'
+                    : 'bg-slate-50/90 dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 <span className="text-[10px] uppercase font-black opacity-80">{item.dayName}</span>
@@ -213,8 +213,8 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                     isSelected
                       ? 'bg-white/20 text-white'
                       : count > 0
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                      : 'bg-slate-200 text-slate-600'
+                      ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}
                 >
                   {count > 0 ? `${count} HS` : 'Chưa xếp'}
@@ -229,10 +229,10 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Duty Panel */}
         <div className="lg:col-span-2 glass-card rounded-3xl p-5 sm:p-6 shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="font-black text-slate-800 text-lg">
+                <h3 className="font-black text-slate-800 dark:text-white text-lg">
                   {currentRecord.dayName} ({formatVietnamDateDisplay(selectedDate)})
                 </h3>
                 {selectedDate === vnTodayStr && (
@@ -241,7 +241,7 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                 Phân công trực nhật ngày {formatVietnamDateDisplay(selectedDate)}
               </p>
             </div>
@@ -252,19 +252,19 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
               disabled={!canEditDuty}
               className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-2xs ${
                 currentRecord.type === 'hoc_chinh'
-                  ? 'bg-blue-100 text-blue-900 border border-blue-300 hover:bg-blue-200'
+                  ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-900 dark:text-blue-300 border border-blue-300 dark:border-blue-800 hover:bg-blue-200 dark:hover:bg-blue-900/60'
                   : currentRecord.type === 'hoc_nghe'
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
-                  : 'bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200'
+                  ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-900/60'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
               } ${!canEditDuty ? 'opacity-80 cursor-not-allowed' : ''}`}
             >
               {currentRecord.type === 'hoc_chinh' ? (
                 <>
-                  <BookOpen className="w-4 h-4 text-blue-600" /> HỌC CHÍNH {canEditDuty && '(Đổi →)'}
+                  <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" /> HỌC CHÍNH {canEditDuty && '(Đổi →)'}
                 </>
               ) : currentRecord.type === 'hoc_nghe' ? (
                 <>
-                  <Wrench className="w-4 h-4 text-amber-600" /> HỌC NGHỀ {canEditDuty && '(Đổi →)'}
+                  <Wrench className="w-4 h-4 text-amber-600 dark:text-amber-400" /> HỌC NGHỀ {canEditDuty && '(Đổi →)'}
                 </>
               ) : (
                 <>NGHỈ {canEditDuty && '(Đổi →)'}</>
@@ -275,7 +275,7 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
           {/* Assigned Students Grid */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h4 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
+              <h4 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-1.5">
                 Học sinh trực nhật ({currentRecord.assignedStudentIds.length} bạn)
               </h4>
 
@@ -284,7 +284,7 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                   {currentRecord.assignedStudentIds.length > 0 && (
                     <button
                       onClick={handleClearAllAssigned}
-                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 rounded-xl text-xs font-bold transition-all"
+                      className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold transition-all"
                     >
                       Xóa Hết
                     </button>
@@ -300,12 +300,12 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
             </div>
 
             {currentRecord.assignedStudentIds.length === 0 ? (
-              <div className="p-8 border-2 border-dashed border-slate-200 rounded-3xl text-center bg-slate-50/50 space-y-2">
-                <p className="text-xs font-bold text-slate-500">Chưa có học sinh nào được phân công cho ngày này.</p>
+              <div className="p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl text-center bg-slate-50/50 dark:bg-slate-800/30 space-y-2">
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Chưa có học sinh nào được phân công cho ngày này.</p>
                 {canEditDuty && (
                   <button
                     onClick={() => setIsAddStudentOpen(true)}
-                    className="px-4 py-2 bg-teal-50 text-teal-800 hover:bg-teal-100 rounded-xl text-xs font-black border border-teal-200 transition-all inline-flex items-center gap-1.5 shadow-2xs"
+                    className="px-4 py-2 bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 rounded-xl text-xs font-black border border-teal-200 dark:border-teal-800 transition-all inline-flex items-center gap-1.5 shadow-2xs"
                   >
                     <Plus className="w-3.5 h-3.5" /> Bấm vào đây để chọn nhanh
                   </button>
@@ -320,14 +320,14 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                   return (
                     <div
                       key={stId}
-                      className="p-3 bg-slate-50/90 border border-slate-200 rounded-2xl flex items-center justify-between shadow-2xs group hover:bg-white transition-all"
+                      className="p-3 bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center justify-between shadow-2xs group hover:bg-white dark:hover:bg-slate-800 transition-all"
                     >
                       <div className="flex items-center space-x-3">
-                        <span className="w-7 h-7 rounded-xl bg-teal-100 text-teal-800 font-black text-xs flex items-center justify-center">
+                        <span className="w-7 h-7 rounded-xl bg-teal-100 dark:bg-teal-950/50 text-teal-800 dark:text-teal-300 font-black text-xs flex items-center justify-center">
                           #{st.stt}
                         </span>
                         <div>
-                          <p className="text-xs font-black text-slate-800">{st.name}</p>
+                          <p className="text-xs font-black text-slate-800 dark:text-white">{st.name}</p>
                           <span className="text-[10px] text-slate-400 font-semibold">Tổ {st.group}</span>
                         </div>
                       </div>
@@ -336,7 +336,7 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                         <button
                           onClick={() => handleRemoveStudentFromDuty(stId)}
                           title="Gỡ học sinh"
-                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
+                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -350,30 +350,30 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
 
           {/* Custom Note */}
           <div className="space-y-1.5 pt-2">
-            <label className="block text-xs font-black text-slate-700">Ghi chú phân công ca trực:</label>
+            <label className="block text-xs font-black text-slate-700 dark:text-slate-300">Ghi chú phân công ca trực:</label>
             <input
               type="text"
               disabled={!canEditDuty}
               placeholder="VD: Mang khẩu trang, quét lớp sạch sẽ, giặt giẻ lau bảng, đổ rác cuối buổi..."
               value={currentRecord.customNote || ''}
               onChange={e => handleNoteChange(e.target.value)}
-              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:bg-white focus:outline-none focus:border-teal-500 disabled:opacity-75"
+              className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-medium text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-teal-500 disabled:opacity-75"
             />
           </div>
         </div>
 
         {/* Task Reference Panel */}
         <div className="glass-card rounded-3xl p-5 shadow-sm space-y-4">
-          <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
-            <CheckSquare className="w-4 h-4 text-teal-600" /> Nhiệm Vụ Trực Nhật Quy Định
+          <h3 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-2">
+            <CheckSquare className="w-4 h-4 text-teal-600 dark:text-teal-400" /> Nhiệm Vụ Trực Nhật Quy Định
           </h3>
           <div className="space-y-2.5">
             {tasks.map(t => (
-              <div key={t.id} className="p-3.5 bg-slate-50/90 border border-slate-200/90 rounded-2xl shadow-2xs">
-                <p className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-teal-600 shrink-0" /> {t.name}
+              <div key={t.id} className="p-3.5 bg-slate-50/90 dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700 rounded-2xl shadow-2xs">
+                <p className="text-xs font-black text-slate-800 dark:text-white flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" /> {t.name}
                 </p>
-                <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">{t.description}</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed">{t.description}</p>
               </div>
             ))}
           </div>
@@ -383,31 +383,31 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
       {/* Add Student Selection Modal (Supports quick single add or group add) */}
       {isAddStudentOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
               <div>
-                <h3 className="font-black text-slate-800 text-base">Thêm Học Sinh Trực Nhật</h3>
-                <p className="text-xs text-slate-500">Ngày: {formatVietnamDateDisplay(selectedDate)}</p>
+                <h3 className="font-black text-slate-800 dark:text-white text-base">Thêm Học Sinh Trực Nhật</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Ngày: {formatVietnamDateDisplay(selectedDate)}</p>
               </div>
               <button
                 onClick={() => setIsAddStudentOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Quick Add by Group/Tổ */}
-            <div className="mb-4 p-3 bg-teal-50/70 border border-teal-200 rounded-2xl space-y-2">
-              <span className="text-[11px] font-black text-teal-900 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-teal-600" /> Thêm nhanh cả Tổ trực nhật:
+            <div className="mb-4 p-3 bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-2xl space-y-2">
+              <span className="text-[11px] font-black text-teal-900 dark:text-teal-300 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" /> Thêm nhanh cả Tổ trực nhật:
               </span>
               <div className="grid grid-cols-3 gap-1.5">
                 {[1, 2, 3].map(g => (
                   <button
                     key={g}
                     onClick={() => handleAddEntireGroup(g)}
-                    className="py-1.5 bg-white hover:bg-teal-600 hover:text-white text-teal-800 border border-teal-200 rounded-xl text-xs font-black transition-all shadow-2xs text-center"
+                    className="py-1.5 bg-white dark:bg-slate-800 hover:bg-teal-600 hover:text-white dark:hover:bg-teal-600 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-700 rounded-xl text-xs font-black transition-all shadow-2xs text-center"
                   >
                     + Tổ {g}
                   </button>
@@ -423,7 +423,7 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                 placeholder="Tìm tên học sinh..."
                 value={studentSearch}
                 onChange={e => setStudentSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none"
               />
             </div>
 
@@ -432,7 +432,7 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
               <button
                 onClick={() => setModalGroupFilter('all')}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-black ${
-                  modalGroupFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'
+                  modalGroupFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                 }`}
               >
                 Tất cả
@@ -442,7 +442,7 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                   key={g}
                   onClick={() => setModalGroupFilter(g)}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-black ${
-                    modalGroupFilter === g ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600'
+                    modalGroupFilter === g ? 'bg-teal-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                   }`}
                 >
                   Tổ {g}
