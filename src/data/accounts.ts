@@ -1,4 +1,5 @@
 export type UserRole =
+  | 'ADMIN'
   | 'GVCN'
   | 'LỚP PHÓ HỌC TẬP'
   | 'LỚP TRƯỞNG'
@@ -15,7 +16,19 @@ export interface UserAccount {
 }
 
 export const CLASS_ACCOUNTS: UserAccount[] = [
+  // === ADMIN (Toàn quyền hệ thống) ===
+  { stt: -1, name: 'Admin Minh', role: 'ADMIN', username: 'Minh', password: 'HaAnh31072010@' },
+
+  // === GVCN ===
   { stt: 0, name: 'Tạ Thị Vân', role: 'GVCN', username: 'van.tt', password: 'gvcn@2026#Van' },
+
+  // === Cán bộ lớp ===
+  { stt: 30, name: 'Đoàn Ánh Vi', role: 'LỚP TRƯỞNG', username: 'vi.da', password: 'Vi@2026#30' },
+  { stt: 32, name: 'Lý Triệu Vũ', role: 'LỚP PHÓ LAO ĐỘNG', username: 'vu.lt', password: 'Vu@2026#32' },
+  { stt: 34, name: 'Phạm Hoàng Linh', role: 'LỚP PHÓ KỈ LUẬT', username: 'linh.ph', password: 'Linh@2026#34' },
+  { stt: 36, name: 'Phạm Quang Minh', role: 'LỚP PHÓ HỌC TẬP', username: 'minh.pq', password: 'Minh@2026#36' },
+
+  // === Học sinh ===
   { stt: 1, name: 'Phạm Trường An', role: 'HỌC SINH', username: 'an.pt', password: 'An@2026#01' },
   { stt: 2, name: 'Chu Bùi An', role: 'HỌC SINH', username: 'an.cb', password: 'An@2026#02' },
   { stt: 3, name: 'Lê Tuấn Anh', role: 'HỌC SINH', username: 'anh.lt', password: 'Anh@2026#03' },
@@ -45,15 +58,11 @@ export const CLASS_ACCOUNTS: UserAccount[] = [
   { stt: 27, name: 'Trần Thành Trung', role: 'HỌC SINH', username: 'trung.tt', password: 'Trung@2026#27' },
   { stt: 28, name: 'Nguyễn Minh Tuệ', role: 'HỌC SINH', username: 'tue.nm', password: 'Tue@2026#28' },
   { stt: 29, name: 'Nguyễn Văn Tuyên', role: 'HỌC SINH', username: 'tuyen.nv', password: 'Tuyen@2026#29' },
-  { stt: 30, name: 'Đoàn Ánh Vi', role: 'LỚP TRƯỞNG', username: 'vi.da', password: 'Vi@2026#30' },
   { stt: 31, name: 'Bùi Thế Vinh', role: 'HỌC SINH', username: 'vinh.bt', password: 'Vinh@2026#31' },
-  { stt: 32, name: 'Lý Triệu Vũ', role: 'LỚP PHÓ LAO ĐỘNG', username: 'vu.lt', password: 'Vu@2026#32' },
   { stt: 33, name: 'Vũ Phạm Hà Châu', role: 'HỌC SINH', username: 'chau.vph', password: 'Chau@2026#33' },
-  { stt: 34, name: 'Phạm Hoàng Linh', role: 'LỚP PHÓ KỈ LUẬT', username: 'linh.ph', password: 'Linh@2026#34' },
   { stt: 35, name: 'Vũ Trà My', role: 'HỌC SINH', username: 'my.vt', password: 'My@2026#35' },
-  { stt: 36, name: 'Phạm Quang Minh', role: 'LỚP PHÓ HỌC TẬP', username: 'minh.pq', password: 'Minh@2026#36' },
   { stt: 37, name: 'Đinh Thanh Trà', role: 'HỌC SINH', username: 'tra.dt', password: 'tra@2026#37' },
-  { stt: 38, name: 'Bao Nam', role: 'HỌC SINH', username: 'nam.b', password: 'NAM@2026#38' }
+  { stt: 38, name: 'Bảo Nam', role: 'HỌC SINH', username: 'nam.b', password: 'NAM@2026#38' },
 ];
 
 export const EMULATION_SHEET_URL =
@@ -61,8 +70,8 @@ export const EMULATION_SHEET_URL =
 
 export function getRolePermissions(role?: UserRole) {
   if (!role) {
-    // Default guest mode: read only
     return {
+      isAdmin: false,
       canFullControl: false,
       canTakeAttendance: false,
       canEditDuty: false,
@@ -72,9 +81,20 @@ export function getRolePermissions(role?: UserRole) {
   }
 
   switch (role) {
+    case 'ADMIN':
+      return {
+        isAdmin: true,
+        canFullControl: true,
+        canTakeAttendance: true,
+        canEditDuty: true,
+        canEditSeating: true,
+        canUploadRules: true,
+      };
+
     case 'GVCN':
     case 'LỚP PHÓ HỌC TẬP':
       return {
+        isAdmin: false,
         canFullControl: true,
         canTakeAttendance: true,
         canEditDuty: true,
@@ -84,6 +104,7 @@ export function getRolePermissions(role?: UserRole) {
 
     case 'LỚP TRƯỞNG':
       return {
+        isAdmin: false,
         canFullControl: false,
         canTakeAttendance: true,
         canEditDuty: false,
@@ -93,6 +114,7 @@ export function getRolePermissions(role?: UserRole) {
 
     case 'LỚP PHÓ LAO ĐỘNG':
       return {
+        isAdmin: false,
         canFullControl: false,
         canTakeAttendance: false,
         canEditDuty: true,
@@ -104,6 +126,7 @@ export function getRolePermissions(role?: UserRole) {
     case 'HỌC SINH':
     default:
       return {
+        isAdmin: false,
         canFullControl: false,
         canTakeAttendance: false,
         canEditDuty: false,

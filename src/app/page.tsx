@@ -7,6 +7,7 @@ import { AttendanceManager } from '../components/Attendance/AttendanceManager';
 import { RuleLookup } from '../components/RuleLookup/RuleLookup';
 import { DutyScheduleManager } from '../components/DutySchedule/DutyScheduleManager';
 import { LoginModal } from '../components/LoginModal';
+import { AdminPanel } from '../components/Admin/AdminPanel';
 
 import { Student, RuleItem, ColumnRow, AttendanceRecord, DynamicDutyRecord, AuthUser } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT, INITIAL_DUTY_TASKS } from '../data/initialData';
@@ -159,6 +160,7 @@ export default function Home() {
         totalStudents={students.length}
         theme={theme}
         onToggleTheme={handleToggleTheme}
+        isAdmin={permissions.isAdmin}
       />
 
       {/* Main Content Area */}
@@ -204,6 +206,25 @@ export default function Home() {
               onUpdateDutyRecords={handleUpdateDutyRecords}
               canEditDuty={permissions.canEditDuty}
             />
+          </div>
+        )}
+
+        {activeTab === 'admin' && permissions.isAdmin && currentUser && (
+          <div className="animate-in fade-in duration-300">
+            <AdminPanel
+              currentAdminUser={{ username: currentUser.username, name: currentUser.name }}
+            />
+          </div>
+        )}
+
+        {/* Unauthorized guard for admin tab */}
+        {activeTab === 'admin' && !permissions.isAdmin && (
+          <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
+            <div className="w-16 h-16 rounded-3xl bg-rose-100 dark:bg-rose-950/40 flex items-center justify-center text-rose-500">
+              <span className="text-3xl">🔒</span>
+            </div>
+            <h3 className="text-base font-black text-slate-800 dark:text-white">Không Có Quyền Truy Cập</h3>
+            <p className="text-xs text-slate-400">Trang này chỉ dành cho tài khoản Admin.</p>
           </div>
         )}
       </main>
