@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { LayoutGrid, ClipboardCheck, Award, FileSearch, Calendar, Users, LogIn, LogOut, ExternalLink, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LayoutGrid, ClipboardCheck, Award, FileSearch, Calendar, Users, LogIn, LogOut, ExternalLink, Clock, Sparkles } from 'lucide-react';
 import { AuthUser } from '../data/types';
 import { EMULATION_SHEET_URL } from '../data/accounts';
 
@@ -22,6 +22,29 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   totalStudents,
 }) => {
+  // Live Vietnam Clock
+  const [vnTimeStr, setVnTimeStr] = useState<string>('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      try {
+        const formatter = new Intl.DateTimeFormat('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        });
+        setVnTimeStr(formatter.format(new Date()));
+      } catch (e) {
+        setVnTimeStr(new Date().toLocaleTimeString());
+      }
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const tabs = [
     { id: 'seating', label: 'Sơ Đồ Chỗ Ngồi', icon: LayoutGrid, external: false },
     { id: 'attendance', label: 'Điểm Danh', icon: ClipboardCheck, external: false },
@@ -30,114 +53,128 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'duty', label: 'Lịch Trực Nhật', icon: Calendar, external: false },
   ];
 
-  const getRoleBadgeClass = (role?: string) => {
+  const getRoleBadgeStyle = (role?: string) => {
     switch (role) {
       case 'GVCN':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
+        return 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-purple-200';
       case 'LỚP TRƯỞNG':
-        return 'bg-blue-100 text-blue-800 border-blue-300';
+        return 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-blue-200';
       case 'LỚP PHÓ HỌC TẬP':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        return 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-200';
       case 'LỚP PHÓ LAO ĐỘNG':
-        return 'bg-amber-100 text-amber-800 border-amber-300';
+        return 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-amber-200';
       case 'LỚP PHÓ KỈ LUẬT':
-        return 'bg-sky-100 text-sky-800 border-sky-300';
+        return 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-sky-200';
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-300';
+        return 'bg-slate-200 text-slate-700';
     }
   };
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Brand Logo & Title */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md">
-              11A7
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-slate-800 leading-tight">
-                QUẢN LÝ LỚP 11A7
-              </h1>
-              <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-blue-500" /> Sĩ số: <span className="font-semibold text-slate-700">{totalStudents}</span> học sinh
-              </p>
-            </div>
-          </div>
-
-          {/* Navigation Tabs */}
-          <nav className="hidden md:flex space-x-1">
-            {tabs.map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-
-              if (tab.external) {
-                return (
-                  <a
-                    key={tab.id}
-                    href={tab.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-1.5 px-3.5 py-2 rounded-lg text-sm font-medium text-amber-700 hover:bg-amber-50 transition-all border border-transparent hover:border-amber-200"
-                    title="Mở Google Sheet theo dõi điểm thi đua lớp 11A7"
-                  >
-                    <Icon className="w-4 h-4 text-amber-600" />
-                    <span>{tab.label}</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-amber-500 ml-0.5" />
-                  </a>
-                );
-              }
-
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-600 font-semibold shadow-sm border border-blue-200/60'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* User Auth Section */}
-          <div className="flex items-center space-x-3">
-            {currentUser ? (
-              <div className="flex items-center space-x-2.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-                <div className="text-right">
-                  <p className="text-xs font-bold text-slate-800 leading-tight">{currentUser.name}</p>
-                  <span className={`text-[10px] font-extrabold px-1.5 py-0.2 rounded border ${getRoleBadgeClass(currentUser.role)}`}>
-                    {currentUser.role}
-                  </span>
-                </div>
-                <button
-                  onClick={onLogout}
-                  title="Đăng xuất"
-                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
+    <>
+      {/* Top Header */}
+      <header className="glass-nav border-b border-slate-200/80 sticky top-0 z-40 shadow-xs transition-all">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Brand Logo & Class Title */}
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-blue-500/20 ring-2 ring-white/60">
+                11A7
               </div>
-            ) : (
-              <button
-                onClick={onOpenLogin}
-                className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Đăng Nhập</span>
-              </button>
-            )}
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h1 className="text-base sm:text-lg font-black text-slate-800 tracking-tight leading-tight">
+                    QUẢN LÝ LỚP 11A7
+                  </h1>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse hidden sm:inline" />
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                  <span className="flex items-center gap-1 font-medium">
+                    <Users className="w-3 h-3 text-blue-500" /> Sĩ số: <strong className="text-slate-700 font-bold">{totalStudents}</strong>
+                  </span>
+                  {vnTimeStr && (
+                    <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200/60">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                      <Clock className="w-2.5 h-2.5 text-slate-400" /> {vnTimeStr} (VN)
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop Navigation Tabs */}
+            <nav className="hidden lg:flex items-center space-x-1.5 bg-slate-100/70 p-1 rounded-2xl border border-slate-200/60">
+              {tabs.map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+
+                if (tab.external) {
+                  return (
+                    <a
+                      key={tab.id}
+                      href={tab.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-amber-800 hover:bg-amber-100/80 transition-all border border-amber-200/80 shadow-2xs"
+                      title="Mở Google Sheet theo dõi điểm thi đua lớp 11A7"
+                    >
+                      <Icon className="w-3.5 h-3.5 text-amber-600" />
+                      <span>{tab.label}</span>
+                      <ExternalLink className="w-3 h-3 text-amber-600" />
+                    </a>
+                  );
+                }
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                      isActive
+                        ? 'bg-white text-blue-700 font-extrabold shadow-sm border border-slate-200/80'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* User Auth Section */}
+            <div className="flex items-center space-x-2">
+              {currentUser ? (
+                <div className="flex items-center space-x-2 bg-white/80 border border-slate-200/80 rounded-2xl p-1.5 shadow-2xs">
+                  <div className="text-right pl-1 hidden sm:block">
+                    <p className="text-xs font-black text-slate-800 leading-tight">{currentUser.name}</p>
+                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full inline-block mt-0.5 shadow-2xs ${getRoleBadgeStyle(currentUser.role)}`}>
+                      {currentUser.role}
+                    </span>
+                  </div>
+                  <button
+                    onClick={onLogout}
+                    title="Đăng xuất tài khoản"
+                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={onOpenLogin}
+                  className="px-3.5 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 active:scale-95 transition-all flex items-center gap-1.5"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Đăng Nhập</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Mobile Navigation Tabs */}
-        <div className="md:hidden flex overflow-x-auto py-2 space-x-1 border-t border-slate-100 no-scrollbar">
+        {/* Mobile Sub-header Tabs (Tablet / Phones) */}
+        <div className="lg:hidden flex overflow-x-auto py-2 px-3 space-x-1.5 border-t border-slate-100 no-scrollbar bg-slate-50/60">
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -149,9 +186,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   href={tab.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-800 whitespace-nowrap"
+                  className="flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200/80 whitespace-nowrap shadow-2xs"
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-3.5 h-3.5 text-amber-600" />
                   <span>{tab.label} 🔗</span>
                 </a>
               );
@@ -161,8 +198,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap ${
-                  isActive ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600'
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20'
+                    : 'bg-white border border-slate-200/70 text-slate-700 hover:bg-slate-100'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -171,7 +210,52 @@ export const Navbar: React.FC<NavbarProps> = ({
             );
           })}
         </div>
+      </header>
+
+      {/* Floating Bottom Nav for Mobile Screens */}
+      <div className="sm:hidden fixed bottom-3 left-3 right-3 z-40 bg-white/95 backdrop-blur-md rounded-2xl p-1.5 shadow-xl border border-slate-200/90 flex items-center justify-around">
+        {tabs.slice(0, 4).map(tab => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+
+          if (tab.external) {
+            return (
+              <a
+                key={tab.id}
+                href={tab.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center p-1.5 text-amber-700 text-[10px] font-bold"
+              >
+                <Icon className="w-4 h-4" />
+                <span className="text-[9px]">Thi Đua</span>
+              </a>
+            );
+          }
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center justify-center p-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                isActive ? 'text-blue-600 font-extrabold scale-105' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="text-[9px]">{tab.label.split(' ')[0]}</span>
+            </button>
+          );
+        })}
+        <button
+          onClick={() => setActiveTab('duty')}
+          className={`flex flex-col items-center justify-center p-1.5 rounded-xl text-[10px] font-bold transition-all ${
+            activeTab === 'duty' ? 'text-blue-600 font-extrabold scale-105' : 'text-slate-500 hover:text-slate-900'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          <span className="text-[9px]">Trực Nhật</span>
+        </button>
       </div>
-    </header>
+    </>
   );
 };

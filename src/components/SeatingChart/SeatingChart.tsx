@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Student, ColumnRow } from '../../data/types';
 import { DeskConfigModal } from './DeskConfigModal';
 import { LuckyWheelModal } from './LuckyWheelModal';
-import { Search, Sparkles, Settings, UserCheck, Users, HelpCircle, ShieldAlert } from 'lucide-react';
+import { Search, Sparkles, Settings, UserCheck, Users, HelpCircle, ShieldAlert, UserPlus, X, ArrowLeftRight, Check, Eye } from 'lucide-react';
 
 interface SeatingChartProps {
   students: Student[];
@@ -23,6 +23,13 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
   const [draggedStudentId, setDraggedStudentId] = useState<string | null>(null);
+
+  // Column view filter on mobile/tablet ('all' | columnId)
+  const [selectedColumnFilter, setSelectedColumnFilter] = useState<string>('all');
+
+  // Mobile Tap-to-assign modal state
+  const [tapSeatTarget, setTapSeatTarget] = useState<{ colId: string; deskId: string; seatIndex: number; currentStudentId: string | null } | null>(null);
+  const [pickerSearch, setPickerSearch] = useState('');
 
   // Helper map student ID -> Student object
   const studentMap = React.useMemo(() => {
@@ -44,6 +51,17 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
     return set;
   }, [layout]);
 
+  // Total seats capacity
+  const totalSeatsCapacity = React.useMemo(() => {
+    let count = 0;
+    layout.forEach(col => {
+      col.desks.forEach(d => {
+        count += d.capacity;
+      });
+    });
+    return count;
+  }, [layout]);
+
   // Unassigned students list
   const unassignedStudents = React.useMemo(() => {
     return students.filter(s => !assignedStudentIds.has(s.id));
@@ -61,13 +79,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
     e.preventDefault();
   };
 
-  const handleDropSeat = (colId: string, deskId: string, seatIndex: number, e: React.DragEvent) => {
-    if (!canEditSeating) return;
-    e.preventDefault();
-    const studentId = e.dataTransfer.getData('text/plain');
-    if (!studentId) return;
-
-    // Create deep copy of layout
+  const assignStudentToSeat = (colId: string, deskId: string, seatIndex: number, studentId: string) => {
     const newLayout = layout.map(col => ({
       ...col,
       desks: col.desks.map(desk => ({
@@ -97,6 +109,15 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
     }
 
     onUpdateLayout(newLayout);
+  };
+
+  const handleDropSeat = (colId: string, deskId: string, seatIndex: number, e: React.DragEvent) => {
+    if (!canEditSeating) return;
+    e.preventDefault();
+    const studentId = e.dataTransfer.getData('text/plain');
+    if (!studentId) return;
+
+    assignStudentToSeat(colId, deskId, seatIndex, studentId);
     setDraggedStudentId(null);
   };
 
@@ -121,6 +142,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
       return col;
     });
     onUpdateLayout(newLayout);
+    setTapSeatTarget(null);
   };
 
   const handleSetGlobalCapacity = (capacity: number) => {
@@ -138,30 +160,51 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
     onUpdateLayout(newLayout);
   };
 
+  // Filter columns to display
+  const displayedColumns = selectedColumnFilter === 'all'
+    ? layout
+    : layout.filter(c => c.id === selectedColumnFilter);
+
+  // Available students to assign via tap modal
+  const availableInPicker = students.filter(s =>
+    s.name.toLowerCase().includes(pickerSearch.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       {/* Top Toolbar */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="glass-card rounded-2xl p-4 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
         {/* Search */}
-        <div className="relative w-full md:w-72">
+        <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Tìm tên học sinh trên sơ đồ..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         {/* Status badges */}
-        <div className="flex items-center gap-3 text-xs">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 font-semibold rounded-lg border border-emerald-200">
-            <UserCheck className="w-3.5 h-3.5" /> Đã xếp: {assignedStudentIds.size}/{students.length}
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 font-bold rounded-xl border border-emerald-200 shadow-2xs">
+            <UserCheck className="w-3.5 h-3.5 text-emerald-600" /> Đã xếp: {assignedStudentIds.size}/{students.length}
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-800 font-bold rounded-xl border border-blue-200 shadow-2xs">
+            Tổng số chỗ: {totalSeatsCapacity}
           </span>
           {unassignedStudents.length > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 font-semibold rounded-lg border border-amber-200">
-              <Users className="w-3.5 h-3.5" /> Chưa xếp: {unassignedStudents.length}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 font-bold rounded-xl border border-amber-200 shadow-2xs animate-pulse">
+              <Users className="w-3.5 h-3.5 text-amber-600" /> Chưa xếp: {unassignedStudents.length}
             </span>
           )}
         </div>
@@ -170,54 +213,102 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
           <button
             onClick={() => setIsWheelOpen(true)}
-            className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/20 active:scale-95 transition-all flex items-center gap-1.5"
           >
-            <Sparkles className="w-4 h-4" /> Vòng Quay May Mắn
+            <Sparkles className="w-4 h-4 animate-spin-slow" /> Vòng Quay May Mắn
           </button>
           {canEditSeating ? (
             <button
               onClick={() => setIsConfigOpen(true)}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 transition-all flex items-center gap-1.5"
+              className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 shadow-2xs transition-all flex items-center gap-1.5"
             >
               <Settings className="w-4 h-4 text-slate-500" /> Tùy Chỉnh Bàn 3 Chỗ
             </button>
           ) : (
-            <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl flex items-center gap-1">
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Quyền: Chỉ Xem Sơ Đồ
+            <span className="text-xs text-slate-500 bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl flex items-center gap-1 font-semibold">
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Quyền: Chỉ Xem
             </span>
           )}
         </div>
       </div>
 
-      {/* Main Grid & Unassigned Sidebar */}
+      {/* Column Filter Pills (For Mobile & Small Laptops) */}
+      <div className="flex items-center justify-between overflow-x-auto pb-1 gap-2 no-scrollbar">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider hidden sm:inline mr-1">Xem dãy:</span>
+          <button
+            onClick={() => setSelectedColumnFilter('all')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+              selectedColumnFilter === 'all'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+            }`}
+          >
+            Toàn Lớp (3 Dãy)
+          </button>
+          {layout.map(col => (
+            <button
+              key={col.id}
+              onClick={() => setSelectedColumnFilter(col.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                selectedColumnFilter === col.id
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              {col.name.split(' ')[0]} {col.name.split(' ')[1] || ''}
+            </button>
+          ))}
+        </div>
+
+        <p className="text-[11px] text-slate-400 hidden md:block">
+          💡 <span className="font-semibold text-slate-600">Mẹo:</span> Trên điện thoại, bạn có thể chạm trực tiếp vào ghế để đổi hoặc xếp học sinh.
+        </p>
+      </div>
+
+      {/* Main Classroom Grid & Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Classroom Grid */}
-        <div className="lg:col-span-3 bg-slate-100/70 p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
-          {/* Chalkboard Banner */}
-          <div className="bg-slate-800 text-white text-center py-3 px-6 rounded-xl shadow-md font-bold tracking-widest text-sm uppercase flex items-center justify-center gap-3 border-b-4 border-slate-900">
+        <div className="lg:col-span-3 bg-slate-100/90 p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+          {/* 3D Chalkboard Banner */}
+          <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white text-center py-3.5 px-6 rounded-2xl shadow-lg font-black tracking-widest text-xs sm:text-sm uppercase flex items-center justify-center gap-3 border-b-4 border-slate-950">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
             <span>BẢNG ĐEN / BÀN GIÁO VIÊN</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
           </div>
 
           {/* Seating Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
-            {layout.map(col => (
-              <div key={col.id} className="bg-white/80 backdrop-blur-xs rounded-xl p-3.5 border border-slate-200 shadow-2xs space-y-3">
-                <div className="bg-slate-200/70 text-slate-700 font-extrabold text-xs text-center py-1.5 rounded-lg tracking-wide uppercase">
+          <div className={`grid gap-4 sm:gap-5 items-start ${
+            displayedColumns.length === 1
+              ? 'grid-cols-1 max-w-md mx-auto'
+              : displayedColumns.length === 2
+              ? 'grid-cols-1 md:grid-cols-2'
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+          }`}>
+            {displayedColumns.map(col => (
+              <div key={col.id} className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-sm space-y-3.5">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-900 font-black text-xs text-center py-2 rounded-xl border border-blue-100 tracking-wide uppercase shadow-2xs">
                   {col.name}
                 </div>
 
                 <div className="space-y-3">
                   {col.desks.map(desk => (
-                    <div key={desk.id} className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5 shadow-2xs">
-                      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 px-1">
-                        <span>{desk.name}</span>
-                        <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono">
+                    <div key={desk.id} className="bg-slate-50/80 hover:bg-slate-50 border border-slate-200/90 rounded-2xl p-3 space-y-2 shadow-2xs transition-all">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 px-1">
+                        <span className="text-slate-700">{desk.name}</span>
+                        <span className="text-[10px] bg-slate-200/80 text-slate-700 font-extrabold px-2 py-0.5 rounded-full">
                           {desk.capacity} chỗ
                         </span>
                       </div>
 
-                      {/* Desk Seats */}
-                      <div className={`grid gap-1.5 ${desk.capacity === 3 ? 'grid-cols-3' : desk.capacity === 4 ? 'grid-cols-4' : 'grid-cols-2'}`}>
+                      {/* Desk Seats Grid */}
+                      <div className={`grid gap-2 ${
+                        desk.capacity === 3
+                          ? 'grid-cols-3'
+                          : desk.capacity === 4
+                          ? 'grid-cols-4'
+                          : 'grid-cols-2'
+                      }`}>
                         {desk.seats.map((seat, seatIdx) => {
                           const student = seat.studentId ? studentMap.get(seat.studentId) : null;
                           const isHighlighted =
@@ -230,40 +321,57 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                               key={seatIdx}
                               onDragOver={handleDragOver}
                               onDrop={e => handleDropSeat(col.id, desk.id, seatIdx, e)}
-                              className={`min-h-[56px] p-1.5 rounded-lg border-2 border-dashed transition-all flex flex-col items-center justify-center text-center relative group ${
+                              onClick={() => {
+                                if (canEditSeating) {
+                                  setTapSeatTarget({
+                                    colId: col.id,
+                                    deskId: desk.id,
+                                    seatIndex: seatIdx,
+                                    currentStudentId: seat.studentId,
+                                  });
+                                }
+                              }}
+                              className={`min-h-[64px] p-2 rounded-xl border-2 transition-all flex flex-col items-center justify-center text-center relative group ${
+                                canEditSeating ? 'cursor-pointer active:scale-95' : ''
+                              } ${
                                 student
                                   ? isHighlighted
-                                    ? 'bg-amber-100 border-amber-500 text-amber-900 shadow-md ring-2 ring-amber-400'
-                                    : 'bg-white border-blue-200 text-slate-800 shadow-2xs'
-                                  : 'bg-slate-100/50 border-slate-300 text-slate-400'
+                                    ? 'bg-amber-100 border-amber-500 text-amber-950 shadow-md ring-4 ring-amber-400/40 animate-pulse'
+                                    : 'bg-white border-blue-200 text-slate-800 shadow-xs hover:border-blue-400 hover:shadow-md'
+                                  : 'bg-slate-100/70 border-dashed border-slate-300 text-slate-400 hover:border-blue-400 hover:bg-blue-50/50'
                               }`}
                             >
                               {student ? (
                                 <div
                                   draggable={canEditSeating}
                                   onDragStart={e => handleDragStart(e, student.id)}
-                                  className={`w-full h-full flex flex-col items-center justify-center ${canEditSeating ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                  className="w-full h-full flex flex-col items-center justify-center select-none"
                                 >
-                                  <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1 rounded">
+                                  <span className="text-[9px] font-black text-blue-700 bg-blue-100/80 px-1.5 py-0.2 rounded-md">
                                     #{student.stt}
                                   </span>
-                                  <span className="text-[11px] font-bold leading-tight line-clamp-2 px-0.5 mt-0.5">
+                                  <span className="text-[11px] font-extrabold leading-tight line-clamp-2 px-0.5 mt-1">
                                     {student.name}
                                   </span>
 
-                                  {/* Quick Remove Button on Hover if canEditSeating */}
+                                  {/* Quick Remove on hover (Desktop) */}
                                   {canEditSeating && (
                                     <button
-                                      onClick={() => handleUnassignSeat(col.id, desk.id, seatIdx)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUnassignSeat(col.id, desk.id, seatIdx);
+                                      }}
                                       title="Gỡ khỏi bàn"
-                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-sm"
+                                      className="absolute -top-1.5 -right-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-full w-4 h-4 text-[10px] font-black opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-md"
                                     >
                                       ×
                                     </button>
                                   )}
                                 </div>
                               ) : (
-                                <span className="text-[10px] text-slate-400 font-medium">Chỗ trống</span>
+                                <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-0.5">
+                                  + Trống
+                                </span>
                               )}
                             </div>
                           );
@@ -278,22 +386,23 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
         </div>
 
         {/* Unassigned Students Sidebar */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-4">
+        <div className="glass-card rounded-3xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-blue-600" /> Danh Sách Chờ Xếp Chỗ ({unassignedStudents.length})
+            <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-600" /> Chưa Xếp Chỗ ({unassignedStudents.length})
             </h3>
           </div>
 
-          <p className="text-[11px] text-slate-500 flex items-center gap-1">
+          <p className="text-[11px] text-slate-500 flex items-center gap-1.5 leading-snug">
             <HelpCircle className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-            {canEditSeating ? 'Kéo thả tên học sinh vào vị trí ghế trống trên sơ đồ.' : 'Xem danh sách các học sinh chưa phân chỗ.'}
+            {canEditSeating ? 'Kéo thả tên vào ghế hoặc chạm vào ô ghế trống để chọn nhanh.' : 'Danh sách các bạn học sinh chưa được xếp chỗ.'}
           </p>
 
-          <div className="space-y-2 max-h-[550px] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
             {unassignedStudents.length === 0 ? (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center text-emerald-800 text-xs font-semibold">
-                🎉 Tất cả học sinh 11A7 đã được xếp chỗ ngồi!
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center text-emerald-800 text-xs font-bold space-y-1">
+                <p className="text-xl">🎉</p>
+                <p>Tất cả 38 học sinh 11A7 đã được xếp chỗ ngồi đầy đủ!</p>
               </div>
             ) : (
               unassignedStudents.map(st => (
@@ -301,25 +410,108 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                   key={st.id}
                   draggable={canEditSeating}
                   onDragStart={e => handleDragStart(e, st.id)}
-                  className={`bg-slate-50 border border-slate-200 rounded-xl p-2.5 transition-all flex items-center justify-between shadow-2xs ${
+                  className={`bg-slate-50 border border-slate-200/90 rounded-2xl p-3 transition-all flex items-center justify-between shadow-2xs ${
                     canEditSeating ? 'hover:bg-blue-50 hover:border-blue-300 cursor-grab active:cursor-grabbing' : ''
                   }`}
                 >
-                  <div className="flex items-center space-x-2">
-                    <span className="w-5 h-5 rounded-md bg-blue-100 text-blue-700 font-bold text-[10px] flex items-center justify-center">
+                  <div className="flex items-center space-x-2.5">
+                    <span className="w-6 h-6 rounded-xl bg-blue-100 text-blue-700 font-black text-[10px] flex items-center justify-center">
                       {st.stt}
                     </span>
-                    <span className="text-xs font-bold text-slate-700">
+                    <span className="text-xs font-black text-slate-800">
                       {st.name}
                     </span>
                   </div>
-                  {canEditSeating && <span className="text-[10px] text-slate-400 font-medium">Kéo thả →</span>}
+                  {canEditSeating && <span className="text-[10px] text-slate-400 font-bold">Kéo →</span>}
                 </div>
               ))
             )}
           </div>
         </div>
       </div>
+
+      {/* Touch Tap Seat Modal (Assign or Swap Student on Mobile/Touch) */}
+      {tapSeatTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <div>
+                <h3 className="font-black text-slate-800 text-base">Xếp Chỗ Ngồi Học Sinh</h3>
+                <p className="text-xs text-slate-500">
+                  {tapSeatTarget.currentStudentId
+                    ? `Ghế hiện tại: ${studentMap.get(tapSeatTarget.currentStudentId)?.name}`
+                    : 'Ghế đang trống. Chọn học sinh để xếp:'}
+                </p>
+              </div>
+              <button
+                onClick={() => setTapSeatTarget(null)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Actions if seat occupied */}
+            {tapSeatTarget.currentStudentId && (
+              <div className="mb-4 p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700">Học sinh đang ngồi: {studentMap.get(tapSeatTarget.currentStudentId)?.name}</span>
+                <button
+                  onClick={() => handleUnassignSeat(tapSeatTarget.colId, tapSeatTarget.deskId, tapSeatTarget.seatIndex)}
+                  className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+                >
+                  Gỡ Ra
+                </button>
+              </div>
+            )}
+
+            {/* Search Student in picker */}
+            <div className="relative mb-3">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Tìm tên học sinh muốn xếp vào đây..."
+                value={pickerSearch}
+                onChange={e => setPickerSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
+              />
+            </div>
+
+            {/* Student List to select */}
+            <div className="space-y-1.5 max-h-[260px] overflow-y-auto pr-1">
+              {availableInPicker.map(st => {
+                const isCurrent = st.id === tapSeatTarget.currentStudentId;
+                const isAssignedElse = assignedStudentIds.has(st.id) && !isCurrent;
+
+                return (
+                  <button
+                    key={st.id}
+                    onClick={() => {
+                      assignStudentToSeat(tapSeatTarget.colId, tapSeatTarget.deskId, tapSeatTarget.seatIndex, st.id);
+                      setTapSeatTarget(null);
+                    }}
+                    className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all ${
+                      isCurrent
+                        ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold'
+                        : 'bg-slate-50 hover:bg-blue-50 border-slate-200 text-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="w-5 h-5 rounded-md bg-blue-100 text-blue-700 font-bold text-[10px] flex items-center justify-center">
+                        {st.stt}
+                      </span>
+                      <span className="text-xs font-bold">{st.name}</span>
+                    </div>
+
+                    <span className="text-[10px] font-semibold text-slate-400">
+                      {isCurrent ? 'Đang ngồi đây' : isAssignedElse ? 'Đổi sang đây' : '+ Xếp vào'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {canEditSeating && (

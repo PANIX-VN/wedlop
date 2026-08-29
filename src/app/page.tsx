@@ -84,18 +84,18 @@ export default function Home() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs font-bold text-slate-600">Đang tải dữ liệu Lớp 11A7...</p>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center space-y-4 animate-pulse">
+          <div className="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto shadow-lg shadow-blue-500/30"></div>
+          <p className="text-sm font-black text-white tracking-wider uppercase">Đang tải dữ liệu Lớp 11A7...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100/80">
-      {/* Navigation Bar */}
+    <div className="min-h-screen flex flex-col">
+      {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -105,42 +105,50 @@ export default function Home() {
         totalStudents={students.length}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Main Content Area (Extra bottom padding on mobile for floating bottom nav) */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 pb-24 sm:pb-10">
         {activeTab === 'seating' && (
-          <SeatingChart
-            students={students}
-            layout={seatingLayout}
-            onUpdateLayout={handleUpdateSeating}
-            canEditSeating={permissions.canEditSeating}
-          />
+          <div className="animate-in fade-in duration-300">
+            <SeatingChart
+              students={students}
+              layout={seatingLayout}
+              onUpdateLayout={handleUpdateSeating}
+              canEditSeating={permissions.canEditSeating}
+            />
+          </div>
         )}
 
         {activeTab === 'attendance' && (
-          <AttendanceManager
-            students={students}
-            attendanceRecords={attendanceRecords}
-            onSaveRecord={handleSaveAttendance}
-            canTakeAttendance={permissions.canTakeAttendance}
-          />
+          <div className="animate-in fade-in duration-300">
+            <AttendanceManager
+              students={students}
+              attendanceRecords={attendanceRecords}
+              onSaveRecord={handleSaveAttendance}
+              canTakeAttendance={permissions.canTakeAttendance}
+            />
+          </div>
         )}
 
         {activeTab === 'rules' && (
-          <RuleLookup
-            rules={rules}
-            onUpdateRules={handleUpdateRules}
-            canUploadRules={permissions.canUploadRules}
-          />
+          <div className="animate-in fade-in duration-300">
+            <RuleLookup
+              rules={rules}
+              onUpdateRules={handleUpdateRules}
+              canUploadRules={permissions.canUploadRules}
+            />
+          </div>
         )}
 
         {activeTab === 'duty' && (
-          <DutyScheduleManager
-            students={students}
-            dutyRecords={dutyRecords}
-            tasks={INITIAL_DUTY_TASKS}
-            onUpdateDutyRecords={handleUpdateDutyRecords}
-            canEditDuty={permissions.canEditDuty}
-          />
+          <div className="animate-in fade-in duration-300">
+            <DutyScheduleManager
+              students={students}
+              dutyRecords={dutyRecords}
+              tasks={INITIAL_DUTY_TASKS}
+              onUpdateDutyRecords={handleUpdateDutyRecords}
+              canEditDuty={permissions.canEditDuty}
+            />
+          </div>
         )}
       </main>
 
@@ -151,10 +159,15 @@ export default function Home() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4">
-          <p className="font-semibold">Bản quyền © 2026 - Lớp 11A7 • Hệ Thống Quản Lý Lớp Học Thông Minh</p>
+      {/* Footer (Hidden on mobile to save viewport space with bottom bar) */}
+      <footer className="hidden sm:block glass-nav border-t border-slate-200/80 py-5 text-center text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="font-bold text-slate-700">
+            ✨ Hệ Thống Quản Lý Lớp Học Thông Minh 11A7
+          </p>
+          <p className="text-[11px] text-slate-400">
+            Tương thích hoàn hảo trên Máy tính, iPad/Tablet & Điện thoại (iOS/Android)
+          </p>
         </div>
       </footer>
     </div>

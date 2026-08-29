@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Student, AttendanceStatus, AttendanceRecord, SessionType } from '../../data/types';
 import { getVietnamTodayString, formatVietnamDateDisplay } from '../../utils/time';
-import { Calendar, CheckCircle2, XCircle, Clock, AlertTriangle, Save, CheckCheck, ShieldAlert, BarChart3, ListFilter, BookOpen, Wrench } from 'lucide-react';
+import { Calendar, CheckCircle2, XCircle, Clock, AlertTriangle, Save, CheckCheck, ShieldAlert, BarChart3, ListFilter, BookOpen, Wrench, Users, Filter, X } from 'lucide-react';
 
 interface AttendanceManagerProps {
   students: Student[];
@@ -20,15 +20,16 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
 }) => {
   const vnToday = getVietnamTodayString();
 
-  // Mode: 'daily' | 'weekly' | 'monthly'
+  // View Mode: 'daily' | 'weekly' | 'monthly'
   const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
   // Active Session: 'hoc_chinh' | 'hoc_nghe'
   const [activeSession, setActiveSession] = useState<SessionType>('hoc_chinh');
 
-  // Selected date & month
+  // Selected states
   const [selectedDate, setSelectedDate] = useState<string>(vnToday);
   const [selectedMonth, setSelectedMonth] = useState<string>(vnToday.substring(0, 7)); // YYYY-MM
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<number | 'all'>('all');
   const [currentMap, setCurrentMap] = useState<Record<string, AttendanceStatus>>({});
   const [isSavedNotice, setIsSavedNotice] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
@@ -60,8 +61,13 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
 
   const handleAllPresent = () => {
     if (!canTakeAttendance) return;
-    const newMap: Record<string, AttendanceStatus> = {};
-    students.forEach(s => {
+    const newMap: Record<string, AttendanceStatus> = { ...currentMap };
+    // If filtered by group, only set that group to present
+    const targetStudents = selectedGroupFilter === 'all'
+      ? students
+      : students.filter(s => s.group === selectedGroupFilter);
+
+    targetStudents.forEach(s => {
       newMap[s.id] = 'present';
     });
     setCurrentMap(newMap);
@@ -92,8 +98,11 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
       else if (st === 'late') late++;
     });
 
-    return { present, excused, unexcused, late };
-  }, [currentMap]);
+    const totalStudents = students.length;
+    const attendancePercentage = totalStudents > 0 ? Math.round(((present + late) / totalStudents) * 100) : 100;
+
+    return { present, excused, unexcused, late, attendancePercentage };
+  }, [currentMap, students]);
 
   // Compute week range from selectedDate (Mon to Sat) in Vietnam Time
   const weekDays = React.useMemo(() => {
@@ -156,20 +165,23 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
     return { totalDaysRecorded, statsMap };
   }, [attendanceRecords, selectedMonth, activeSession, students]);
 
-  const filteredStudents = students.filter(s =>
-    s.name.toLowerCase().includes(searchFilter.toLowerCase())
-  );
+  // Filtered students by search & group
+  const filteredStudents = students.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(searchFilter.toLowerCase());
+    const matchesGroup = selectedGroupFilter === 'all' || s.group === selectedGroupFilter;
+    return matchesSearch && matchesGroup;
+  });
 
-  const getStatusBadge = (st?: AttendanceStatus) => {
+  const getStatusIcon = (st?: AttendanceStatus) => {
     switch (st) {
       case 'present':
-        return <span className="text-emerald-700 font-extrabold" title="Có mặt">🟢</span>;
+        return <span className="inline-block text-emerald-600 font-bold" title="Có mặt">🟢</span>;
       case 'late':
-        return <span className="text-amber-700 font-extrabold" title="Đi muộn">🟠</span>;
+        return <span className="inline-block text-amber-500 font-bold" title="Đi muộn">🟠</span>;
       case 'excused':
-        return <span className="text-sky-700 font-extrabold" title="Nghỉ có phép">🔵</span>;
+        return <span className="inline-block text-sky-600 font-bold" title="Nghỉ có phép">🔵</span>;
       case 'unexcused':
-        return <span className="text-rose-700 font-extrabold" title="Nghỉ không phép">🔴</span>;
+        return <span className="inline-block text-rose-600 font-bold" title="Nghỉ không phép">🔴</span>;
       default:
         return <span className="text-slate-300 font-medium">-</span>;
     }
@@ -178,27 +190,27 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Header & View Modes */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+      <div className="glass-card rounded-3xl p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/20">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-base font-bold text-slate-800">Điểm Danh Lớp 11A7</h2>
-              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-300">
-                Giờ Việt Nam (GMT+7): {formatVietnamDateDisplay(vnToday)}
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight">Điểm Danh Lớp 11A7</h2>
+              <span className="bg-emerald-100/90 text-emerald-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-300 shadow-2xs">
+                Giờ VN: {formatVietnamDateDisplay(vnToday)}
               </span>
             </div>
-            <p className="text-xs text-slate-500">Đồng bộ chuẩn giờ Việt Nam. Phân chia 2 mục: Học Chính & Học Nghề</p>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">Lưu trữ vĩnh viễn • Phân chia Học Chính & Học Nghề</p>
           </div>
         </div>
 
         {/* View Mode Switcher */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <div className="flex items-center bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/80 w-full sm:w-auto justify-center">
           <button
             onClick={() => setViewMode('daily')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               viewMode === 'daily'
                 ? 'bg-white text-blue-700 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -208,7 +220,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           </button>
           <button
             onClick={() => setViewMode('weekly')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               viewMode === 'weekly'
                 ? 'bg-white text-blue-700 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -218,7 +230,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           </button>
           <button
             onClick={() => setViewMode('monthly')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               viewMode === 'monthly'
                 ? 'bg-white text-blue-700 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -230,13 +242,13 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
       </div>
 
       {/* SESSION SELECTOR (HỌC CHÍNH VS HỌC NGHỀ) */}
-      <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-200 flex items-center justify-center gap-3">
+      <div className="glass-card rounded-2xl p-2.5 shadow-2xs flex items-center justify-center gap-2 sm:gap-4">
         <button
           onClick={() => setActiveSession('hoc_chinh')}
-          className={`flex-1 max-w-xs py-2.5 px-4 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 max-w-sm py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-2 ${
             activeSession === 'hoc_chinh'
-              ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-300'
-              : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 ring-2 ring-blue-400'
+              : 'bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700 border border-slate-200'
           }`}
         >
           <BookOpen className="w-4 h-4" />
@@ -245,10 +257,10 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
 
         <button
           onClick={() => setActiveSession('hoc_nghe')}
-          className={`flex-1 max-w-xs py-2.5 px-4 rounded-xl font-extrabold text-xs transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 max-w-sm py-2.5 px-4 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-2 ${
             activeSession === 'hoc_nghe'
-              ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-300'
-              : 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700'
+              ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20 ring-2 ring-amber-400'
+              : 'bg-slate-50 text-slate-600 hover:bg-amber-50 hover:text-amber-700 border border-slate-200'
           }`}
         >
           <Wrench className="w-4 h-4" />
@@ -259,20 +271,21 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
       {/* ----------------- MODE 1: DAILY ATTENDANCE ----------------- */}
       {viewMode === 'daily' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-                <span className="text-xs font-semibold text-slate-600">Ngày điểm danh:</span>
+          {/* Controls & Date Bar */}
+          <div className="glass-card rounded-3xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2">
+                <span className="text-xs font-bold text-slate-600">Ngày:</span>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={e => setSelectedDate(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-black text-slate-800 focus:outline-none cursor-pointer"
                 />
               </div>
               <button
                 onClick={() => setSelectedDate(vnToday)}
-                className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold border border-blue-200 transition-all"
+                className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl text-xs font-bold border border-blue-200 transition-all"
               >
                 Hôm Nay ({formatVietnamDateDisplay(vnToday)})
               </button>
@@ -283,25 +296,25 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                 <>
                   <button
                     onClick={handleAllPresent}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200"
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border border-slate-200 shadow-2xs"
                   >
                     <CheckCheck className="w-4 h-4 text-emerald-600" /> Tất Cả Có Mặt
                   </button>
 
                   <button
                     onClick={handleSave}
-                    className={`px-4 py-2 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1.5 ${
+                    className={`px-4 py-2 text-white rounded-xl text-xs font-black shadow-md active:scale-95 transition-all flex items-center gap-1.5 ${
                       activeSession === 'hoc_chinh'
-                        ? 'bg-blue-600 hover:bg-blue-700'
-                        : 'bg-amber-600 hover:bg-amber-700'
+                        ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
+                        : 'bg-amber-600 hover:bg-amber-700 shadow-amber-500/20'
                     }`}
                   >
-                    <Save className="w-4 h-4" /> Lưu Điểm Danh ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'})
+                    <Save className="w-4 h-4" /> Lưu Điểm Danh
                   </button>
                 </>
               ) : (
-                <span className="text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
-                  <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Chế độ: Xem Điểm Danh
+                <span className="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl flex items-center gap-1.5">
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Chế độ: Chỉ Xem
                 </span>
               )}
             </div>
@@ -309,72 +322,119 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
 
           {/* Toast Notification */}
           {isSavedNotice && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Đã lưu thông tin điểm danh [{activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}] ngày {formatVietnamDateDisplay(selectedDate)} thành công!
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-2xl text-xs font-black flex items-center gap-2 animate-in fade-in slide-in-from-top-2 shadow-sm">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Đã lưu thành công dữ liệu điểm danh [{activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}] ngày {formatVietnamDateDisplay(selectedDate)}!</span>
             </div>
           )}
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between">
+          {/* Real-time Summary Cards & Progress */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div className="glass-card bg-emerald-50/60 border-emerald-200/90 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
               <div>
-                <p className="text-xs font-semibold text-emerald-700">Có mặt</p>
-                <p className="text-2xl font-extrabold text-emerald-800 mt-1">{dailyStats.present}</p>
+                <p className="text-xs font-bold text-emerald-800">Có mặt</p>
+                <p className="text-2xl font-black text-emerald-900 mt-1">{dailyStats.present}</p>
+                <p className="text-[10px] text-emerald-700 font-bold mt-0.5">{dailyStats.attendancePercentage}% chuyên cần</p>
               </div>
-              <CheckCircle2 className="w-8 h-8 text-emerald-500 opacity-80" />
+              <CheckCircle2 className="w-9 h-9 text-emerald-500 opacity-80" />
             </div>
 
-            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 flex items-center justify-between">
+            <div className="glass-card bg-amber-50/60 border-amber-200/90 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
               <div>
-                <p className="text-xs font-semibold text-amber-700">Đi muộn</p>
-                <p className="text-2xl font-extrabold text-amber-800 mt-1">{dailyStats.late}</p>
+                <p className="text-xs font-bold text-amber-800">Đi muộn</p>
+                <p className="text-2xl font-black text-amber-900 mt-1">{dailyStats.late}</p>
+                <p className="text-[10px] text-amber-700 font-bold mt-0.5">Cần nhắc nhở</p>
               </div>
-              <Clock className="w-8 h-8 text-amber-500 opacity-80" />
+              <Clock className="w-9 h-9 text-amber-500 opacity-80" />
             </div>
 
-            <div className="bg-sky-50/70 border border-sky-200 rounded-2xl p-4 flex items-center justify-between">
+            <div className="glass-card bg-sky-50/60 border-sky-200/90 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
               <div>
-                <p className="text-xs font-semibold text-sky-700">Nghỉ có phép</p>
-                <p className="text-2xl font-extrabold text-sky-800 mt-1">{dailyStats.excused}</p>
+                <p className="text-xs font-bold text-sky-800">Có phép</p>
+                <p className="text-2xl font-black text-sky-900 mt-1">{dailyStats.excused}</p>
+                <p className="text-[10px] text-sky-700 font-bold mt-0.5">Có gửi đơn/Zalo</p>
               </div>
-              <AlertTriangle className="w-8 h-8 text-sky-500 opacity-80" />
+              <AlertTriangle className="w-9 h-9 text-sky-500 opacity-80" />
             </div>
 
-            <div className="bg-rose-50/70 border border-rose-200 rounded-2xl p-4 flex items-center justify-between">
+            <div className="glass-card bg-rose-50/60 border-rose-200/90 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
               <div>
-                <p className="text-xs font-semibold text-rose-700">Nghỉ không phép</p>
-                <p className="text-2xl font-extrabold text-rose-800 mt-1">{dailyStats.unexcused}</p>
+                <p className="text-xs font-bold text-rose-800">Không phép</p>
+                <p className="text-2xl font-black text-rose-900 mt-1">{dailyStats.unexcused}</p>
+                <p className="text-[10px] text-rose-700 font-bold mt-0.5">Trừ điểm thi đua</p>
               </div>
-              <XCircle className="w-8 h-8 text-rose-500 opacity-80" />
+              <XCircle className="w-9 h-9 text-rose-500 opacity-80" />
             </div>
           </div>
 
-          {/* Student List Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          {/* Group Filter & Search Bar */}
+          <div className="glass-card rounded-3xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+            {/* Group Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto no-scrollbar">
+              <span className="text-xs font-bold text-slate-500 uppercase mr-1 hidden sm:inline">Lọc theo:</span>
+              <button
+                onClick={() => setSelectedGroupFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  selectedGroupFilter === 'all'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Tất Cả ({students.length})
+              </button>
+              {[1, 2, 3, 4].map(g => (
+                <button
+                  key={g}
+                  onClick={() => setSelectedGroupFilter(g)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    selectedGroupFilter === g
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Tổ {g}
+                </button>
+              ))}
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full md:w-64">
+              <Filter className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Lọc tên học sinh..."
+                value={searchFilter}
+                onChange={e => setSearchFilter(e.target.value)}
+                className="w-full pl-8 pr-7 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-blue-500"
+              />
+              {searchFilter && (
+                <button
+                  onClick={() => setSearchFilter('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Student List Table & Mobile Cards */}
+          <div className="glass-card rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <span>Danh Sách Điểm Danh - {activeSession === 'hoc_chinh' ? '📘 HỌC CHÍNH' : '🛠️ HỌC NGHỀ'}</span>
+              <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
+                <span>Danh Sách Học Sinh - {activeSession === 'hoc_chinh' ? '📘 HỌC CHÍNH' : '🛠️ HỌC NGHỀ'}</span>
                 <span className="text-xs text-slate-400 font-normal">({filteredStudents.length} học sinh)</span>
               </h3>
-
-              <div className="w-48 sm:w-64">
-                <input
-                  type="text"
-                  placeholder="Lọc tên học sinh..."
-                  value={searchFilter}
-                  onChange={e => setSearchFilter(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase border-b border-slate-200">
-                    <th className="py-3 px-4 w-12 text-center">STT</th>
-                    <th className="py-3 px-4">Họ và Tên</th>
-                    <th className="py-3 px-4 text-center">Trạng Thái Điểm Danh</th>
+                  <tr className="bg-slate-50/80 text-slate-500 text-[11px] font-black uppercase border-b border-slate-200">
+                    <th className="py-3.5 px-4 w-12 text-center">STT</th>
+                    <th className="py-3.5 px-4">Họ và Tên</th>
+                    <th className="py-3.5 px-4 text-center">Tổ</th>
+                    <th className="py-3.5 px-4 text-center">Trạng Thái Điểm Danh</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs font-medium">
@@ -382,17 +442,24 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                     const status = currentMap[student.id] || 'present';
 
                     return (
-                      <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-4 text-center font-bold text-slate-500">{student.stt}</td>
-                        <td className="py-3 px-4 font-bold text-slate-800">{student.name}</td>
+                      <tr key={student.id} className="hover:bg-slate-50/90 transition-colors">
+                        <td className="py-3 px-4 text-center font-black text-slate-400">{student.stt}</td>
                         <td className="py-3 px-4">
-                          <div className="flex items-center justify-center space-x-2">
+                          <span className="font-bold text-slate-800 text-xs sm:text-sm">{student.name}</span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                            Tổ {student.group}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
                             <button
                               onClick={() => handleStatusChange(student.id, 'present')}
                               disabled={!canTakeAttendance}
-                              className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1 ${
+                              className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 ${
                                 status === 'present'
-                                  ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300'
+                                  ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300 scale-102'
                                   : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
                               } ${!canTakeAttendance ? 'cursor-default opacity-85' : ''}`}
                             >
@@ -402,9 +469,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                             <button
                               onClick={() => handleStatusChange(student.id, 'late')}
                               disabled={!canTakeAttendance}
-                              className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1 ${
+                              className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 ${
                                 status === 'late'
-                                  ? 'bg-amber-500 text-white shadow-sm ring-2 ring-amber-300'
+                                  ? 'bg-amber-500 text-white shadow-sm ring-2 ring-amber-300 scale-102'
                                   : 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700'
                               } ${!canTakeAttendance ? 'cursor-default opacity-85' : ''}`}
                             >
@@ -414,9 +481,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                             <button
                               onClick={() => handleStatusChange(student.id, 'excused')}
                               disabled={!canTakeAttendance}
-                              className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1 ${
+                              className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 ${
                                 status === 'excused'
-                                  ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-300'
+                                  ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-300 scale-102'
                                   : 'bg-slate-100 text-slate-600 hover:bg-sky-50 hover:text-sky-700'
                               } ${!canTakeAttendance ? 'cursor-default opacity-85' : ''}`}
                             >
@@ -426,9 +493,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                             <button
                               onClick={() => handleStatusChange(student.id, 'unexcused')}
                               disabled={!canTakeAttendance}
-                              className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1 ${
+                              className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all flex items-center gap-1 ${
                                 status === 'unexcused'
-                                  ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-300'
+                                  ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-300 scale-102'
                                   : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-700'
                               } ${!canTakeAttendance ? 'cursor-default opacity-85' : ''}`}
                             >
@@ -449,15 +516,15 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
       {/* ----------------- MODE 2: WEEKLY OVERVIEW ----------------- */}
       {viewMode === 'weekly' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
+          <div className="glass-card rounded-3xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold text-slate-700">Tuần ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}):</span>
-              <span className="text-xs font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl">
+              <span className="text-xs font-bold text-slate-600">Tuần ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}):</span>
+              <span className="text-xs font-black text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl">
                 {formatVietnamDateDisplay(weekDays[0].dateStr)} → {formatVietnamDateDisplay(weekDays[5].dateStr)}
               </span>
             </div>
 
-            <div className="flex items-center space-x-3 text-xs font-semibold">
+            <div className="flex items-center space-x-3 text-xs font-bold text-slate-600">
               <span className="flex items-center gap-1">🟢 Có mặt</span>
               <span className="flex items-center gap-1">🟠 Đi muộn</span>
               <span className="flex items-center gap-1">🔵 Có phép</span>
@@ -465,17 +532,17 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="glass-card rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase border-b border-slate-200">
-                    <th className="py-3 px-4 w-12 text-center">STT</th>
-                    <th className="py-3 px-4">Họ và Tên</th>
+                  <tr className="bg-slate-50 text-slate-500 text-[11px] font-black uppercase border-b border-slate-200">
+                    <th className="py-3.5 px-4 w-12 text-center sticky-col-header">STT</th>
+                    <th className="py-3.5 px-4 sticky-col-header min-w-[150px]">Họ và Tên</th>
                     {weekDays.map(w => (
-                      <th key={w.dateStr} className="py-3 px-3 text-center">
+                      <th key={w.dateStr} className="py-3.5 px-3 text-center min-w-[90px]">
                         <div>{w.label}</div>
-                        <div className="text-[9px] font-mono text-slate-400">{formatVietnamDateDisplay(w.dateStr)}</div>
+                        <div className="text-[9px] font-mono text-slate-400 font-semibold">{formatVietnamDateDisplay(w.dateStr)}</div>
                       </th>
                     ))}
                   </tr>
@@ -483,8 +550,8 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                 <tbody className="divide-y divide-slate-100 text-xs font-medium">
                   {filteredStudents.map(student => (
                     <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 text-center font-bold text-slate-500">{student.stt}</td>
-                      <td className="py-3 px-4 font-bold text-slate-800">{student.name}</td>
+                      <td className="py-3 px-4 text-center font-black text-slate-400 sticky-col-first">{student.stt}</td>
+                      <td className="py-3 px-4 font-bold text-slate-800 sticky-col-first">{student.name}</td>
                       {weekDays.map(w => {
                         const rec = attendanceRecords.find(
                           r => r.date === w.dateStr && (r.sessionType === activeSession || (!r.sessionType && activeSession === 'hoc_chinh'))
@@ -492,7 +559,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                         const status = rec ? rec.records[student.id] : undefined;
                         return (
                           <td key={w.dateStr} className="py-3 px-3 text-center text-base">
-                            {getStatusBadge(status)}
+                            {getStatusIcon(status)}
                           </td>
                         );
                       })}
@@ -508,34 +575,34 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
       {/* ----------------- MODE 3: MONTHLY STATS ----------------- */}
       {viewMode === 'monthly' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div className="glass-card rounded-3xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold text-slate-700">Chọn Tháng Xem Thống Kê:</span>
+              <span className="text-xs font-bold text-slate-700">Chọn Tháng Thống Kê:</span>
               <input
                 type="month"
                 value={selectedMonth}
                 onChange={e => setSelectedMonth(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none"
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black text-slate-800 focus:outline-none"
               />
             </div>
 
-            <div className="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
-              Tổng số ngày điểm danh ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}) tháng {selectedMonth}: <span className="font-extrabold text-blue-700">{monthlyStats.totalDaysRecorded} buổi</span>
+            <div className="text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+              Tổng số buổi điểm danh ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}) tháng {selectedMonth}: <strong className="text-blue-700 font-black">{monthlyStats.totalDaysRecorded} buổi</strong>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="glass-card rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase border-b border-slate-200">
-                    <th className="py-3 px-4 w-12 text-center">STT</th>
-                    <th className="py-3 px-4">Họ và Tên</th>
-                    <th className="py-3 px-3 text-center text-emerald-700">Có Mặt</th>
-                    <th className="py-3 px-3 text-center text-amber-700">Đi Muộn</th>
-                    <th className="py-3 px-3 text-center text-sky-700">Có Phép</th>
-                    <th className="py-3 px-3 text-center text-rose-700">Không Phép</th>
-                    <th className="py-3 px-4 text-center">Tỷ Lệ Chuyên Cần (%)</th>
+                  <tr className="bg-slate-50 text-slate-500 text-[11px] font-black uppercase border-b border-slate-200">
+                    <th className="py-3.5 px-4 w-12 text-center sticky-col-header">STT</th>
+                    <th className="py-3.5 px-4 sticky-col-header min-w-[150px]">Họ và Tên</th>
+                    <th className="py-3.5 px-3 text-center text-emerald-700">Có Mặt</th>
+                    <th className="py-3.5 px-3 text-center text-amber-700">Đi Muộn</th>
+                    <th className="py-3.5 px-3 text-center text-sky-700">Có Phép</th>
+                    <th className="py-3.5 px-3 text-center text-rose-700">Không Phép</th>
+                    <th className="py-3.5 px-4 text-center min-w-[130px]">Tỷ Lệ Chuyên Cần</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs font-medium">
@@ -544,23 +611,23 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
 
                     return (
                       <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-4 text-center font-bold text-slate-500">{student.stt}</td>
-                        <td className="py-3 px-4 font-bold text-slate-800">{student.name}</td>
-                        <td className="py-3 px-3 text-center font-bold text-emerald-700">{st.present}</td>
-                        <td className="py-3 px-3 text-center font-bold text-amber-700">{st.late}</td>
-                        <td className="py-3 px-3 text-center font-bold text-sky-700">{st.excused}</td>
-                        <td className="py-3 px-3 text-center font-bold text-rose-700">{st.unexcused}</td>
+                        <td className="py-3 px-4 text-center font-black text-slate-400 sticky-col-first">{student.stt}</td>
+                        <td className="py-3 px-4 font-bold text-slate-800 sticky-col-first">{student.name}</td>
+                        <td className="py-3 px-3 text-center font-black text-emerald-700">{st.present}</td>
+                        <td className="py-3 px-3 text-center font-black text-amber-700">{st.late}</td>
+                        <td className="py-3 px-3 text-center font-black text-sky-700">{st.excused}</td>
+                        <td className="py-3 px-3 text-center font-black text-rose-700">{st.unexcused}</td>
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center space-x-2">
-                            <div className="w-20 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+                            <div className="w-16 sm:w-20 bg-slate-150 rounded-full h-2 overflow-hidden border border-slate-200">
                               <div
-                                className={`h-full rounded-full ${
+                                className={`h-full rounded-full transition-all ${
                                   st.rate >= 90 ? 'bg-emerald-500' : st.rate >= 75 ? 'bg-amber-500' : 'bg-rose-500'
                                 }`}
                                 style={{ width: `${st.rate}%` }}
                               ></div>
                             </div>
-                            <span className="font-extrabold text-xs text-slate-800">{st.rate}%</span>
+                            <span className="font-black text-xs text-slate-800">{st.rate}%</span>
                           </div>
                         </td>
                       </tr>

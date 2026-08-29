@@ -11,6 +11,7 @@
   "dependencies": {
     "@prisma/client": "^7.10.0",
     "@vercel/postgres": "^0.10.0",
+    "@vercel/speed-insights": "^2.0.0",
     "autoprefixer": "^10.5.4",
     "canvas-confetti": "^1.9.4",
     "lucide-react": "^1.37.0",
@@ -26,5 +27,8 @@
     "@types/node": "26.4.0",
     "@types/react": "19.2.18",
     "typescript": "7.0.2"
+  },
+  "allowScripts": {
+    "bufferutil@4.1.0": true
   }
 }
