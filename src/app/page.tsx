@@ -25,6 +25,7 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   // Core App States
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
@@ -33,7 +34,7 @@ export default function Home() {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [dutyRecords, setDutyRecords] = useState<DynamicDutyRecord[]>([]);
 
-  // Hydrate from LocalStorage
+  // Hydrate from LocalStorage & Theme
   useEffect(() => {
     setStudents(loadStudents());
     setRules(loadRules());
@@ -41,8 +42,28 @@ export default function Home() {
     setAttendanceRecords(loadAttendance());
     setDutyRecords(loadDutyRecords());
     setCurrentUser(loadAuthUser());
+
+    // Load Theme preference
+    const savedTheme = localStorage.getItem('11a7_theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    } else {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = prefersDark ? 'dark' : 'light';
+      setTheme(initialTheme);
+      document.documentElement.classList.toggle('dark', initialTheme === 'dark');
+    }
+
     setIsLoaded(true);
   }, []);
+
+  const handleToggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    localStorage.setItem('11a7_theme', nextTheme);
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+  };
 
   // Compute permissions based on logged in user's role
   const permissions = getRolePermissions(currentUser?.role);
@@ -95,7 +116,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top Navbar */}
+      {/* Top Navbar with Dark/Light Toggle */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -103,9 +124,11 @@ export default function Home() {
         onOpenLogin={() => setIsLoginOpen(true)}
         onLogout={handleLogout}
         totalStudents={students.length}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
-      {/* Main Content Area (Extra bottom padding on mobile for floating bottom nav) */}
+      {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 pb-24 sm:pb-10">
         {activeTab === 'seating' && (
           <div className="animate-in fade-in duration-300">
@@ -159,14 +182,14 @@ export default function Home() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* Footer (Hidden on mobile to save viewport space with bottom bar) */}
-      <footer className="hidden sm:block glass-nav border-t border-slate-200/80 py-5 text-center text-xs text-slate-500">
+      {/* Footer */}
+      <footer className="hidden sm:block glass-nav border-t border-slate-200/80 dark:border-slate-800 py-5 text-center text-xs text-slate-500 dark:text-slate-400">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="font-bold text-slate-700">
+          <p className="font-bold text-slate-700 dark:text-slate-300">
             ✨ Hệ Thống Quản Lý Lớp Học Thông Minh 11A7
           </p>
-          <p className="text-[11px] text-slate-400">
-            Tương thích hoàn hảo trên Máy tính, iPad/Tablet & Điện thoại (iOS/Android)
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">
+            Chế độ: <strong className="text-blue-600 dark:text-blue-400">{theme === 'dark' ? '🌙 Giao diện Tối (Dark Mode)' : '☀️ Giao diện Sáng (Light Mode)'}</strong> • Tương thích mọi thiết bị
           </p>
         </div>
       </footer>
