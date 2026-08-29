@@ -1,4 +1,4 @@
-import { Student, RuleItem, ColumnRow, AttendanceRecord, EmulationLog, DynamicDutyRecord } from '../data/types';
+import { Student, RuleItem, ColumnRow, AttendanceRecord, EmulationLog, DynamicDutyRecord, AuditLog, AuditActionType, AuthUser } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT } from '../data/initialData';
 import { getVietnamCutoffDateString } from './time';
 
@@ -11,6 +11,62 @@ const STORAGE_KEYS = {
   DUTY_RECORDS: '11a7_duty_records',
   AUTH_USER: '11a7_auth_user',
   CUSTOM_PASSWORDS: '11a7_custom_passwords',
+  AUDIT_LOGS: '11a7_audit_logs',
+};
+
+// === Audit Log Helpers ===
+export const loadAuditLogs = (): AuditLog[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS);
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const recordAuditLog = (
+  user: AuthUser | null,
+  action: AuditActionType,
+  details: string
+) => {
+  if (typeof window === 'undefined') return;
+
+  const now = new Date();
+  const vnTimeFormatter = new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour12: false,
+  });
+
+  const newLog: AuditLog = {
+    id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+    timestamp: now.toISOString(),
+    displayTime: vnTimeFormatter.format(now),
+    username: user ? user.username : 'khach',
+    userRole: user ? user.role : 'KHÁCH',
+    userName: user ? user.name : 'Khách truy cập',
+    action,
+    details,
+  };
+
+  const existing = loadAuditLogs();
+  // Keep last 300 logs in LocalStorage
+  const updated = [newLog, ...existing].slice(0, 300);
+  localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(updated));
+
+  // Sync to Cloud DB
+  fetch('/api/audit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newLog),
+  }).catch(() => {});
+};
+
+export const clearAuditLogs = () => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
 };
 
 // Map of username -> custom password (overrides default)

@@ -76,3 +76,27 @@ export interface AuthUser {
   role: UserRole;
   username: string;
 }
+
+export type AuditActionType =
+  | 'LOGIN'
+  | 'LOGOUT'
+  | 'PASSWORD_CHANGE'
+  | 'STUDENT_ADD'
+  | 'STUDENT_EDIT'
+  | 'STUDENT_DELETE'
+  | 'ATTENDANCE_SAVE'
+  | 'DUTY_UPDATE'
+  | 'SEATING_UPDATE'
+  | 'RULE_UPDATE';
+
+export interface AuditLog {
+  id: string;
+  timestamp: string; // ISO string
+  displayTime: string; // HH:mm:ss DD/MM/YYYY Vietnam time
+  username: string;
+  userRole: string;
+  userName: string;
+  action: AuditActionType;
+  details: string;
+}
+

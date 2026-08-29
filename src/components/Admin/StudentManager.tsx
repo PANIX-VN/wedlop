@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Student } from '../../data/types';
 import {
   Users, UserPlus, Trash2, Edit3, Save, X, Search,
-  CheckCircle2, AlertCircle, Crown, Shield, ChevronDown, ChevronUp
+  CheckCircle2, AlertCircle
 } from 'lucide-react';
 
 interface StudentManagerProps {

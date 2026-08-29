@@ -13,6 +13,7 @@ import { StudentManager } from '../components/Admin/StudentManager';
 import { Student, RuleItem, ColumnRow, AttendanceRecord, DynamicDutyRecord, AuthUser } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT, INITIAL_DUTY_TASKS } from '../data/initialData';
 import { getRolePermissions } from '../data/accounts';
+import { useScreenLayout } from '../hooks/useScreenLayout';
 import {
   loadStudents, saveStudents,
   loadRules, saveRules,
@@ -20,6 +21,7 @@ import {
   loadAttendance, saveAttendance,
   loadDutyRecords, saveDutyRecords,
   loadAuthUser, saveAuthUser,
+  recordAuditLog,
 } from '../utils/storage';
 
 export default function Home() {
@@ -100,13 +102,17 @@ export default function Home() {
     document.documentElement.classList.toggle('dark', nextTheme === 'dark');
   };
 
+  // Auto screen layout detection
+  const screenLayout = useScreenLayout();
+
   // Compute permissions based on logged in user's role
   const permissions = getRolePermissions(currentUser?.role);
 
-  // Sync state changes to storage
+  // Sync state changes to storage & audit trail
   const handleUpdateSeating = (newLayout: ColumnRow[]) => {
     setSeatingLayout(newLayout);
     saveSeating(newLayout);
+    recordAuditLog(currentUser, 'SEATING_UPDATE', 'Cập nhật sơ đồ chỗ ngồi của lớp');
   };
 
   const handleSaveAttendance = (newRecord: AttendanceRecord) => {
@@ -116,29 +122,41 @@ export default function Home() {
     ];
     setAttendanceRecords(updated);
     saveAttendance(updated);
+    recordAuditLog(
+      currentUser,
+      'ATTENDANCE_SAVE',
+      `Lưu điểm danh ngày ${newRecord.date} (${newRecord.sessionType === 'hoc_nghe' ? 'Học Nghề' : 'Học Chính'})`
+    );
   };
 
   const handleUpdateRules = (newRules: RuleItem[]) => {
     setRules(newRules);
     saveRules(newRules);
+    recordAuditLog(currentUser, 'RULE_UPDATE', `Cập nhật danh sách quy định (${newRules.length} mục)`);
   };
 
   const handleUpdateDutyRecords = (newRecords: DynamicDutyRecord[]) => {
     setDutyRecords(newRecords);
     saveDutyRecords(newRecords);
+    recordAuditLog(currentUser, 'DUTY_UPDATE', 'Cập nhật phân công lịch trực nhật');
   };
 
   const handleUpdateStudents = (newStudents: Student[]) => {
     setStudents(newStudents);
     saveStudents(newStudents);
+    recordAuditLog(currentUser, 'STUDENT_EDIT', `Cập nhật danh sách học sinh (Tổng: ${newStudents.length} HS)`);
   };
 
   const handleLoginSuccess = (user: AuthUser) => {
     setCurrentUser(user);
     saveAuthUser(user);
+    recordAuditLog(user, 'LOGIN', `Đăng nhập thành công với vai trò ${user.role}`);
   };
 
   const handleLogout = () => {
+    if (currentUser) {
+      recordAuditLog(currentUser, 'LOGOUT', `Đăng xuất khỏi hệ thống`);
+    }
     setCurrentUser(null);
     saveAuthUser(null);
   };
