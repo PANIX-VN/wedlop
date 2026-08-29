@@ -1,3 +1,0 @@
-module.exports=[27572,a=>{"use strict";var b=a.i(7997);a.s(["default",0,function({children:a}){return(0,b.jsx)("html",{lang:"vi",children:(0,b.jsx)("body",{className:"bg-slate-100 min-h-screen text-slate-900 antialiased selection:bg-blue-500 selection:text-white",children:a})})},"metadata",0,{title:"Website Quản Lý Lớp 11A7",description:"Hệ thống sơ đồ chỗ ngồi, điểm danh, thi đua, tra cứu lỗi và lịch trực nhật lớp 11A7"}])},50645,function(a){a.n(a.i(27572))}];
-
-//# sourceMappingURL=src_app_layout_tsx_0r5yz5t._.js.map
