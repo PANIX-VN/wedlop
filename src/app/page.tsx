@@ -55,6 +55,39 @@ export default function Home() {
       document.documentElement.classList.toggle('dark', initialTheme === 'dark');
     }
 
+    // Background sync from Cloud API if available
+    try {
+      fetch('/api/seating')
+        .then(res => res.json())
+        .then(json => {
+          if (json && json.data && Array.isArray(json.data) && json.data.length > 0) {
+            setSeatingLayout(json.data);
+            saveSeating(json.data);
+          }
+        })
+        .catch(() => {});
+
+      fetch('/api/attendance')
+        .then(res => res.json())
+        .then(json => {
+          if (json && json.data && Array.isArray(json.data) && json.data.length > 0) {
+            setAttendanceRecords(json.data);
+            saveAttendance(json.data);
+          }
+        })
+        .catch(() => {});
+
+      fetch('/api/duty')
+        .then(res => res.json())
+        .then(json => {
+          if (json && json.data && Array.isArray(json.data) && json.data.length > 0) {
+            setDutyRecords(json.data);
+            saveDutyRecords(json.data);
+          }
+        })
+        .catch(() => {});
+    } catch (e) {}
+
     setIsLoaded(true);
   }, []);
 

@@ -382,7 +382,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
               >
                 Tất Cả ({students.length})
               </button>
-              {[1, 2, 3, 4].map(g => (
+              {[1, 2, 3].map(g => (
                 <button
                   key={g}
                   onClick={() => setSelectedGroupFilter(g)}

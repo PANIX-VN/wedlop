@@ -16,7 +16,16 @@ export const loadStudents = (): Student[] => {
   if (typeof window === 'undefined') return INITIAL_STUDENTS;
   try {
     const data = localStorage.getItem(STORAGE_KEYS.STUDENTS);
-    return data ? JSON.parse(data) : INITIAL_STUDENTS;
+    if (!data) return INITIAL_STUDENTS;
+    const parsed: Student[] = JSON.parse(data);
+    // Migrate: Ensure only 3 groups (1, 2, 3)
+    return parsed.map(s => {
+      const initialMatch = INITIAL_STUDENTS.find(i => i.id === s.id);
+      return {
+        ...s,
+        group: initialMatch ? initialMatch.group : Math.min(s.group, 3),
+      };
+    });
   } catch (e) {
     console.error('Error loading students', e);
     return INITIAL_STUDENTS;
@@ -58,6 +67,15 @@ export const loadSeating = (): ColumnRow[] => {
 export const saveSeating = (seating: ColumnRow[]) => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEYS.SEATING, JSON.stringify(seating));
+
+  // Sync to Cloud API if available
+  try {
+    fetch('/api/seating', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(seating),
+    }).catch(() => {});
+  } catch (e) {}
 };
 
 export const loadAttendance = (): AttendanceRecord[] => {
@@ -74,6 +92,18 @@ export const loadAttendance = (): AttendanceRecord[] => {
 export const saveAttendance = (attendance: AttendanceRecord[]) => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(attendance));
+
+  // Sync the latest record to Cloud API if available
+  try {
+    const latest = attendance[attendance.length - 1];
+    if (latest) {
+      fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(latest),
+      }).catch(() => {});
+    }
+  } catch (e) {}
 };
 
 export const loadEmulationLogs = (): EmulationLog[] => {
@@ -107,9 +137,20 @@ export const saveDutyRecords = (records: DynamicDutyRecord[]) => {
   if (typeof window === 'undefined') return;
   // Retain records for last 14 days in Vietnam Time
   const cutoffStr = getVietnamCutoffDateString(14);
-
   const recentRecords = records.filter(r => r.date >= cutoffStr);
   localStorage.setItem(STORAGE_KEYS.DUTY_RECORDS, JSON.stringify(recentRecords));
+
+  // Sync to Cloud API if available
+  try {
+    const latest = recentRecords[recentRecords.length - 1];
+    if (latest) {
+      fetch('/api/duty', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(latest),
+      }).catch(() => {});
+    }
+  } catch (e) {}
 };
 
 export const loadAuthUser = () => {

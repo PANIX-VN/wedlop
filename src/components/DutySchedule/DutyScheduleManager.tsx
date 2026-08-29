@@ -402,8 +402,8 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
               <span className="text-[11px] font-black text-teal-900 flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-teal-600" /> Thêm nhanh cả Tổ trực nhật:
               </span>
-              <div className="grid grid-cols-4 gap-1.5">
-                {[1, 2, 3, 4].map(g => (
+              <div className="grid grid-cols-3 gap-1.5">
+                {[1, 2, 3].map(g => (
                   <button
                     key={g}
                     onClick={() => handleAddEntireGroup(g)}
@@ -437,7 +437,7 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
               >
                 Tất cả
               </button>
-              {[1, 2, 3, 4].map(g => (
+              {[1, 2, 3].map(g => (
                 <button
                   key={g}
                   onClick={() => setModalGroupFilter(g)}
