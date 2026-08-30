@@ -530,6 +530,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
         students={students}
         layout={layout}
         onUpdateLayout={onUpdateLayout}
+        canEditSeating={canEditSeating}
       />
     </div>
   );
