@@ -205,17 +205,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               )}
             </button>
           </form>
-
-          {/* Accounts List Hint */}
-          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-3.5 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 space-y-1.5">
-            <p className="font-bold text-slate-700 dark:text-slate-300">💡 Gợi ý tài khoản hệ thống:</p>
-            <ul className="space-y-1 font-mono text-[10px] text-slate-600 dark:text-slate-400">
-              <li>• 👑 Admin: username <strong className="text-red-600 dark:text-red-400">Minh</strong> (Pass: HaAnh31072010@)</li>
-              <li>• 👩‍🏫 GVCN: username <strong className="text-purple-600 dark:text-purple-400">van.tt</strong></li>
-              <li>• 👦 Lớp trưởng: username <strong className="text-blue-600 dark:text-blue-400">vi.da</strong></li>
-              <li>• 👨‍🎓 Học sinh khác: dùng username theo cú pháp <span className="underline">ten.chucai</span></li>
-            </ul>
-          </div>
         </div>
       </div>
 
