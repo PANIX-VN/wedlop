@@ -528,6 +528,8 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
         isOpen={isWheelOpen}
         onClose={() => setIsWheelOpen(false)}
         students={students}
+        layout={layout}
+        onUpdateLayout={onUpdateLayout}
       />
     </div>
   );
