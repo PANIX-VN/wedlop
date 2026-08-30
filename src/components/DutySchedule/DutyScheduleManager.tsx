@@ -165,13 +165,13 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                 Lưu Trữ 14 Ngày
               </span>
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">Phân công trực nhật linh hoạt bằng cách thêm học sinh hoặc thêm cả tổ</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Phân công trực nhật linh hoạt bằng cách thêm học sinh hoặc thêm cả tổ</p>
           </div>
         </div>
 
         {/* Status Badge */}
         {!canEditDuty && (
-          <span className="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2 rounded-xl flex items-center gap-1.5">
             <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Quyền: Chỉ Xem Lịch
           </span>
         )}
@@ -180,10 +180,10 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
       {/* 14-Day Calendar Carousel Picker */}
       <div className="glass-card rounded-3xl p-4 shadow-sm space-y-3">
         <div className="flex items-center justify-between px-1">
-          <h3 className="font-black text-slate-700 text-xs uppercase tracking-wider">
+          <h3 className="font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wider">
             Lịch 14 ngày chuẩn giờ VN (Chạm để chọn ngày):
           </h3>
-          <span className="text-xs font-black text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-0.5 rounded-lg shadow-2xs">
+          <span className="text-xs font-black text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 px-2.5 py-0.5 rounded-lg shadow-2xs">
             {currentRecord.dayName} ({formatVietnamDateDisplay(selectedDate)})
           </span>
         </div>
@@ -461,18 +461,18 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
                   <div
                     key={st.id}
                     onClick={() => handleAddStudentToDuty(st.id)}
-                    className="p-2.5 bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-300 rounded-xl cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
+                    className="p-2.5 bg-slate-50 dark:bg-slate-800/80 hover:bg-teal-50 dark:hover:bg-teal-950/40 border border-slate-200 dark:border-slate-700 hover:border-teal-300 dark:hover:border-teal-700 rounded-xl cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
                   >
                     <div className="flex items-center space-x-2.5">
-                      <span className="w-5 h-5 rounded-md bg-teal-100 text-teal-800 font-black text-[10px] flex items-center justify-center">
+                      <span className="w-5 h-5 rounded-md bg-teal-100 dark:bg-teal-950/50 text-teal-800 dark:text-teal-300 font-black text-[10px] flex items-center justify-center">
                         {st.stt}
                       </span>
-                      <span className="text-xs font-black text-slate-700 group-hover:text-teal-800">
+                      <span className="text-xs font-black text-slate-700 dark:text-slate-200 group-hover:text-teal-800 dark:group-hover:text-teal-300">
                         {st.name}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-semibold">Tổ {st.group}</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold">Tổ {st.group}</span>
                     </div>
-                    <span className="text-[11px] font-black text-teal-600 group-hover:underline">
+                    <span className="text-[11px] font-black text-teal-600 dark:text-teal-400 group-hover:underline">
                       + Thêm
                     </span>
                   </div>
@@ -480,10 +480,10 @@ export const DutyScheduleManager: React.FC<DutyScheduleManagerProps> = ({
               )}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-100 text-right">
+            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-right">
               <button
                 onClick={() => setIsAddStudentOpen(false)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black transition-all"
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-black transition-all"
               >
                 Đóng
               </button>

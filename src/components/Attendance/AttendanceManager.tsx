@@ -274,18 +274,18 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
           {/* Controls & Date Bar */}
           <div className="glass-card rounded-3xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2">
-                <span className="text-xs font-bold text-slate-600">Ngày:</span>
+              <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Ngày:</span>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={e => setSelectedDate(e.target.value)}
-                  className="bg-transparent text-xs font-black text-slate-800 focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-black text-slate-800 dark:text-white focus:outline-none cursor-pointer"
                 />
               </div>
               <button
                 onClick={() => setSelectedDate(vnToday)}
-                className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl text-xs font-bold border border-blue-200 transition-all"
+                className="px-3 py-2 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-800 dark:text-blue-300 rounded-xl text-xs font-bold border border-blue-200 dark:border-blue-800 transition-all"
               >
                 Hôm Nay ({formatVietnamDateDisplay(vnToday)})
               </button>
@@ -296,9 +296,9 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                 <>
                   <button
                     onClick={handleAllPresent}
-                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border border-slate-200 shadow-2xs"
+                    className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-2xs"
                   >
-                    <CheckCheck className="w-4 h-4 text-emerald-600" /> Tất Cả Có Mặt
+                    <CheckCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Tất Cả Có Mặt
                   </button>
 
                   <button
@@ -313,7 +313,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                   </button>
                 </>
               ) : (
-                <span className="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl flex items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl flex items-center gap-1.5">
                   <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Chế độ: Chỉ Xem
                 </span>
               )}
@@ -322,46 +322,46 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
 
           {/* Toast Notification */}
           {isSavedNotice && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-2xl text-xs font-black flex items-center gap-2 animate-in fade-in slide-in-from-top-2 shadow-sm">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-3.5 rounded-2xl text-xs font-black flex items-center gap-2 animate-in fade-in slide-in-from-top-2 shadow-sm">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>Đã lưu thành công dữ liệu điểm danh [{activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}] ngày {formatVietnamDateDisplay(selectedDate)}!</span>
             </div>
           )}
 
           {/* Real-time Summary Cards & Progress */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div className="glass-card bg-emerald-50/60 border-emerald-200/90 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
+            <div className="glass-card bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200/90 dark:border-emerald-900/50 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
               <div>
-                <p className="text-xs font-bold text-emerald-800">Có mặt</p>
-                <p className="text-2xl font-black text-emerald-900 mt-1">{dailyStats.present}</p>
-                <p className="text-[10px] text-emerald-700 font-bold mt-0.5">{dailyStats.attendancePercentage}% chuyên cần</p>
+                <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">Có mặt</p>
+                <p className="text-2xl font-black text-emerald-900 dark:text-emerald-200 mt-1">{dailyStats.present}</p>
+                <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold mt-0.5">{dailyStats.attendancePercentage}% chuyên cần</p>
               </div>
               <CheckCircle2 className="w-9 h-9 text-emerald-500 opacity-80" />
             </div>
 
-            <div className="glass-card bg-amber-50/60 border-amber-200/90 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
+            <div className="glass-card bg-amber-50/60 dark:bg-amber-950/30 border-amber-200/90 dark:border-amber-900/50 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
               <div>
-                <p className="text-xs font-bold text-amber-800">Đi muộn</p>
-                <p className="text-2xl font-black text-amber-900 mt-1">{dailyStats.late}</p>
-                <p className="text-[10px] text-amber-700 font-bold mt-0.5">Cần nhắc nhở</p>
+                <p className="text-xs font-bold text-amber-800 dark:text-amber-300">Đi muộn</p>
+                <p className="text-2xl font-black text-amber-900 dark:text-amber-200 mt-1">{dailyStats.late}</p>
+                <p className="text-[10px] text-amber-700 dark:text-amber-400 font-bold mt-0.5">Cần nhắc nhở</p>
               </div>
               <Clock className="w-9 h-9 text-amber-500 opacity-80" />
             </div>
 
-            <div className="glass-card bg-sky-50/60 border-sky-200/90 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
+            <div className="glass-card bg-sky-50/60 dark:bg-sky-950/30 border-sky-200/90 dark:border-sky-900/50 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
               <div>
-                <p className="text-xs font-bold text-sky-800">Có phép</p>
-                <p className="text-2xl font-black text-sky-900 mt-1">{dailyStats.excused}</p>
-                <p className="text-[10px] text-sky-700 font-bold mt-0.5">Có gửi đơn/Zalo</p>
+                <p className="text-xs font-bold text-sky-800 dark:text-sky-300">Có phép</p>
+                <p className="text-2xl font-black text-sky-900 dark:text-sky-200 mt-1">{dailyStats.excused}</p>
+                <p className="text-[10px] text-sky-700 dark:text-sky-400 font-bold mt-0.5">Có gửi đơn/Zalo</p>
               </div>
               <AlertTriangle className="w-9 h-9 text-sky-500 opacity-80" />
             </div>
 
-            <div className="glass-card bg-rose-50/60 border-rose-200/90 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
+            <div className="glass-card bg-rose-50/60 dark:bg-rose-950/30 border-rose-200/90 dark:border-rose-900/50 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
               <div>
-                <p className="text-xs font-bold text-rose-800">Không phép</p>
-                <p className="text-2xl font-black text-rose-900 mt-1">{dailyStats.unexcused}</p>
-                <p className="text-[10px] text-rose-700 font-bold mt-0.5">Trừ điểm thi đua</p>
+                <p className="text-xs font-bold text-rose-800 dark:text-rose-300">Không phép</p>
+                <p className="text-2xl font-black text-rose-900 dark:text-rose-200 mt-1">{dailyStats.unexcused}</p>
+                <p className="text-[10px] text-rose-700 dark:text-rose-400 font-bold mt-0.5">Trừ điểm thi đua</p>
               </div>
               <XCircle className="w-9 h-9 text-rose-500 opacity-80" />
             </div>
@@ -518,13 +518,13 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="glass-card rounded-3xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold text-slate-600">Tuần ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}):</span>
-              <span className="text-xs font-black text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Tuần ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}):</span>
+              <span className="text-xs font-black text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-3 py-1 rounded-xl">
                 {formatVietnamDateDisplay(weekDays[0].dateStr)} → {formatVietnamDateDisplay(weekDays[5].dateStr)}
               </span>
             </div>
 
-            <div className="flex items-center space-x-3 text-xs font-bold text-slate-600">
+            <div className="flex items-center space-x-3 text-xs font-bold text-slate-600 dark:text-slate-400">
               <span className="flex items-center gap-1">🟢 Có mặt</span>
               <span className="flex items-center gap-1">🟠 Đi muộn</span>
               <span className="flex items-center gap-1">🔵 Có phép</span>
@@ -532,26 +532,26 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
             </div>
           </div>
 
-          <div className="glass-card rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+          <div className="glass-card rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-[11px] font-black uppercase border-b border-slate-200">
+                  <tr className="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase border-b border-slate-200 dark:border-slate-800">
                     <th className="py-3.5 px-4 w-12 text-center sticky-col-header">STT</th>
                     <th className="py-3.5 px-4 sticky-col-header min-w-[150px]">Họ và Tên</th>
                     {weekDays.map(w => (
                       <th key={w.dateStr} className="py-3.5 px-3 text-center min-w-[90px]">
                         <div>{w.label}</div>
-                        <div className="text-[9px] font-mono text-slate-400 font-semibold">{formatVietnamDateDisplay(w.dateStr)}</div>
+                        <div className="text-[9px] font-mono text-slate-400 dark:text-slate-500 font-semibold">{formatVietnamDateDisplay(w.dateStr)}</div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs font-medium">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
                   {filteredStudents.map(student => (
-                    <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 text-center font-black text-slate-400 sticky-col-first">{student.stt}</td>
-                      <td className="py-3 px-4 font-bold text-slate-800 sticky-col-first">{student.name}</td>
+                    <tr key={student.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="py-3 px-4 text-center font-black text-slate-400 dark:text-slate-500 sticky-col-first">{student.stt}</td>
+                      <td className="py-3 px-4 font-bold text-slate-800 dark:text-white sticky-col-first">{student.name}</td>
                       {weekDays.map(w => {
                         const rec = attendanceRecords.find(
                           r => r.date === w.dateStr && (r.sessionType === activeSession || (!r.sessionType && activeSession === 'hoc_chinh'))
@@ -577,49 +577,49 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
         <div className="space-y-6 animate-in fade-in duration-200">
           <div className="glass-card rounded-3xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold text-slate-700">Chọn Tháng Thống Kê:</span>
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Chọn Tháng Thống Kê:</span>
               <input
                 type="month"
                 value={selectedMonth}
                 onChange={e => setSelectedMonth(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black text-slate-800 focus:outline-none"
+                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-black text-slate-800 dark:text-white focus:outline-none"
               />
             </div>
 
-            <div className="text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
-              Tổng số buổi điểm danh ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}) tháng {selectedMonth}: <strong className="text-blue-700 font-black">{monthlyStats.totalDaysRecorded} buổi</strong>
+            <div className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl">
+              Tổng số buổi điểm danh ({activeSession === 'hoc_chinh' ? 'Học Chính' : 'Học Nghề'}) tháng {selectedMonth}: <strong className="text-blue-700 dark:text-blue-400 font-black">{monthlyStats.totalDaysRecorded} buổi</strong>
             </div>
           </div>
 
-          <div className="glass-card rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+          <div className="glass-card rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-[11px] font-black uppercase border-b border-slate-200">
+                  <tr className="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase border-b border-slate-200 dark:border-slate-800">
                     <th className="py-3.5 px-4 w-12 text-center sticky-col-header">STT</th>
                     <th className="py-3.5 px-4 sticky-col-header min-w-[150px]">Họ và Tên</th>
-                    <th className="py-3.5 px-3 text-center text-emerald-700">Có Mặt</th>
-                    <th className="py-3.5 px-3 text-center text-amber-700">Đi Muộn</th>
-                    <th className="py-3.5 px-3 text-center text-sky-700">Có Phép</th>
-                    <th className="py-3.5 px-3 text-center text-rose-700">Không Phép</th>
+                    <th className="py-3.5 px-3 text-center text-emerald-700 dark:text-emerald-400">Có Mặt</th>
+                    <th className="py-3.5 px-3 text-center text-amber-700 dark:text-amber-400">Đi Muộn</th>
+                    <th className="py-3.5 px-3 text-center text-sky-700 dark:text-sky-400">Có Phép</th>
+                    <th className="py-3.5 px-3 text-center text-rose-700 dark:text-rose-400">Không Phép</th>
                     <th className="py-3.5 px-4 text-center min-w-[130px]">Tỷ Lệ Chuyên Cần</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs font-medium">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
                   {filteredStudents.map(student => {
                     const st = monthlyStats.statsMap.get(student.id) || { present: 0, late: 0, excused: 0, unexcused: 0, rate: 100 };
 
                     return (
-                      <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-4 text-center font-black text-slate-400 sticky-col-first">{student.stt}</td>
-                        <td className="py-3 px-4 font-bold text-slate-800 sticky-col-first">{student.name}</td>
-                        <td className="py-3 px-3 text-center font-black text-emerald-700">{st.present}</td>
-                        <td className="py-3 px-3 text-center font-black text-amber-700">{st.late}</td>
-                        <td className="py-3 px-3 text-center font-black text-sky-700">{st.excused}</td>
-                        <td className="py-3 px-3 text-center font-black text-rose-700">{st.unexcused}</td>
+                      <tr key={student.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="py-3 px-4 text-center font-black text-slate-400 dark:text-slate-500 sticky-col-first">{student.stt}</td>
+                        <td className="py-3 px-4 font-bold text-slate-800 dark:text-white sticky-col-first">{student.name}</td>
+                        <td className="py-3 px-3 text-center font-black text-emerald-700 dark:text-emerald-400">{st.present}</td>
+                        <td className="py-3 px-3 text-center font-black text-amber-700 dark:text-amber-400">{st.late}</td>
+                        <td className="py-3 px-3 text-center font-black text-sky-700 dark:text-sky-400">{st.excused}</td>
+                        <td className="py-3 px-3 text-center font-black text-rose-700 dark:text-rose-400">{st.unexcused}</td>
                         <td className="py-3 px-4 text-center">
                           <div className="flex items-center justify-center space-x-2">
-                            <div className="w-16 sm:w-20 bg-slate-150 rounded-full h-2 overflow-hidden border border-slate-200">
+                            <div className="w-16 sm:w-20 bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
                               <div
                                 className={`h-full rounded-full transition-all ${
                                   st.rate >= 90 ? 'bg-emerald-500' : st.rate >= 75 ? 'bg-amber-500' : 'bg-rose-500'
@@ -627,7 +627,7 @@ export const AttendanceManager: React.FC<AttendanceManagerProps> = ({
                                 style={{ width: `${st.rate}%` }}
                               ></div>
                             </div>
-                            <span className="font-black text-xs text-slate-800">{st.rate}%</span>
+                            <span className="font-black text-xs text-slate-800 dark:text-white">{st.rate}%</span>
                           </div>
                         </td>
                       </tr>

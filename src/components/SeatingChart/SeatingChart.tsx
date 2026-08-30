@@ -347,7 +347,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                                   onDragStart={e => handleDragStart(e, student.id)}
                                   className="w-full h-full flex flex-col items-center justify-center select-none"
                                 >
-                                  <span className="text-[9px] font-black text-blue-700 bg-blue-100/80 px-1.5 py-0.2 rounded-md">
+                                  <span className="text-[9px] font-black text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-950/60 px-1.5 py-0.2 rounded-md">
                                     #{student.stt}
                                   </span>
                                   <span className="text-[11px] font-extrabold leading-tight line-clamp-2 px-0.5 mt-1">
@@ -369,7 +369,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                                   )}
                                 </div>
                               ) : (
-                                <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-0.5">
+                                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-0.5">
                                   + Trống
                                 </span>
                               )}
@@ -387,20 +387,20 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
 
         {/* Unassigned Students Sidebar */}
         <div className="glass-card rounded-3xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-600" /> Chưa Xếp Chỗ ({unassignedStudents.length})
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Chưa Xếp Chỗ ({unassignedStudents.length})
             </h3>
           </div>
 
-          <p className="text-[11px] text-slate-500 flex items-center gap-1.5 leading-snug">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 leading-snug">
             <HelpCircle className="w-3.5 h-3.5 text-blue-500 shrink-0" />
             {canEditSeating ? 'Kéo thả tên vào ghế hoặc chạm vào ô ghế trống để chọn nhanh.' : 'Danh sách các bạn học sinh chưa được xếp chỗ.'}
           </p>
 
           <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
             {unassignedStudents.length === 0 ? (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center text-emerald-800 text-xs font-bold space-y-1">
+              <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-5 text-center text-emerald-800 dark:text-emerald-300 text-xs font-bold space-y-1">
                 <p className="text-xl">🎉</p>
                 <p>Tất cả 38 học sinh 11A7 đã được xếp chỗ ngồi đầy đủ!</p>
               </div>
@@ -410,19 +410,19 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                   key={st.id}
                   draggable={canEditSeating}
                   onDragStart={e => handleDragStart(e, st.id)}
-                  className={`bg-slate-50 border border-slate-200/90 rounded-2xl p-3 transition-all flex items-center justify-between shadow-2xs ${
-                    canEditSeating ? 'hover:bg-blue-50 hover:border-blue-300 cursor-grab active:cursor-grabbing' : ''
+                  className={`bg-slate-50 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700 rounded-2xl p-3 transition-all flex items-center justify-between shadow-2xs ${
+                    canEditSeating ? 'hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-700 cursor-grab active:cursor-grabbing' : ''
                   }`}
                 >
                   <div className="flex items-center space-x-2.5">
-                    <span className="w-6 h-6 rounded-xl bg-blue-100 text-blue-700 font-black text-[10px] flex items-center justify-center">
+                    <span className="w-6 h-6 rounded-xl bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-black text-[10px] flex items-center justify-center">
                       {st.stt}
                     </span>
-                    <span className="text-xs font-black text-slate-800">
+                    <span className="text-xs font-black text-slate-800 dark:text-white">
                       {st.name}
                     </span>
                   </div>
-                  {canEditSeating && <span className="text-[10px] text-slate-400 font-bold">Kéo →</span>}
+                  {canEditSeating && <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">Kéo →</span>}
                 </div>
               ))
             )}
@@ -433,11 +433,11 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
       {/* Touch Tap Seat Modal (Assign or Swap Student on Mobile/Touch) */}
       {tapSeatTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in duration-200 animate-scale-in">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
               <div>
-                <h3 className="font-black text-slate-800 text-base">Xếp Chỗ Ngồi Học Sinh</h3>
-                <p className="text-xs text-slate-500">
+                <h3 className="font-black text-slate-800 dark:text-white text-base">Xếp Chỗ Ngồi Học Sinh</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {tapSeatTarget.currentStudentId
                     ? `Ghế hiện tại: ${studentMap.get(tapSeatTarget.currentStudentId)?.name}`
                     : 'Ghế đang trống. Chọn học sinh để xếp:'}
@@ -445,7 +445,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
               </div>
               <button
                 onClick={() => setTapSeatTarget(null)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -453,8 +453,8 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
 
             {/* Quick Actions if seat occupied */}
             {tapSeatTarget.currentStudentId && (
-              <div className="mb-4 p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700">Học sinh đang ngồi: {studentMap.get(tapSeatTarget.currentStudentId)?.name}</span>
+              <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Học sinh đang ngồi: {studentMap.get(tapSeatTarget.currentStudentId)?.name}</span>
                 <button
                   onClick={() => handleUnassignSeat(tapSeatTarget.colId, tapSeatTarget.deskId, tapSeatTarget.seatIndex)}
                   className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
@@ -472,7 +472,7 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                 placeholder="Tìm tên học sinh muốn xếp vào đây..."
                 value={pickerSearch}
                 onChange={e => setPickerSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none"
+                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none"
               />
             </div>
 
@@ -491,18 +491,18 @@ export const SeatingChart: React.FC<SeatingChartProps> = ({
                     }}
                     className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all ${
                       isCurrent
-                        ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold'
-                        : 'bg-slate-50 hover:bg-blue-50 border-slate-200 text-slate-800'
+                        ? 'bg-blue-50 dark:bg-blue-950/50 border-blue-300 dark:border-blue-800 text-blue-900 dark:text-blue-300 font-bold'
+                        : 'bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200'
                     }`}
                   >
                     <div className="flex items-center space-x-2">
-                      <span className="w-5 h-5 rounded-md bg-blue-100 text-blue-700 font-bold text-[10px] flex items-center justify-center">
+                      <span className="w-5 h-5 rounded-md bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-bold text-[10px] flex items-center justify-center">
                         {st.stt}
                       </span>
                       <span className="text-xs font-bold">{st.name}</span>
                     </div>
 
-                    <span className="text-[10px] font-semibold text-slate-400">
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
                       {isCurrent ? 'Đang ngồi đây' : isAssignedElse ? 'Đổi sang đây' : '+ Xếp vào'}
                     </span>
                   </button>
