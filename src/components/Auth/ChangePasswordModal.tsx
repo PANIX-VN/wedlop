@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { KeyRound, Eye, EyeOff, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { saveCustomPassword } from '../utils/storage';
+import { saveCustomPassword } from '../../utils/storage';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;

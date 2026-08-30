@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { LayoutGrid, ClipboardCheck, Award, FileSearch, Calendar, Users, LogIn, LogOut, ExternalLink, Clock, Sparkles, Moon, Sun, ShieldAlert, UserCog } from 'lucide-react';
-import { AuthUser } from '../data/types';
-import { EMULATION_SHEET_URL } from '../data/accounts';
+import { LayoutGrid, ClipboardCheck, Award, Calendar, LogIn, LogOut, Clock, Sparkles, Moon, Sun, ShieldAlert, UserCog } from 'lucide-react';
+import { AuthUser } from '../../data/types';
 
 interface NavbarProps {
   activeTab: string;
@@ -70,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         return 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-red-200';
       case 'GVCN':
         return 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-purple-200';
-      case 'LỚP TRƯỞNG':
+      case 'LỚP TRƯỜNG':
         return 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-blue-200';
       case 'LỚP PHÓ HỌC TẬP':
         return 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-200';
@@ -103,7 +102,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
                   <span className="flex items-center gap-1 font-medium">
-                    <Users className="w-3 h-3 text-blue-500" /> Sĩ số: <strong className="text-slate-700 dark:text-slate-200 font-bold">{totalStudents}</strong>
+                    Sĩ số: <strong className="text-slate-700 dark:text-slate-200 font-bold">{totalStudents}</strong>
                   </span>
                   {vnTimeStr && (
                     <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-slate-700">
@@ -242,7 +241,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="sm:hidden fixed bottom-3 left-3 right-3 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-1.5 shadow-xl border border-slate-200/90 dark:border-slate-800 flex items-center justify-around">
         {tabs.slice(0, 4).map(tab => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+          const isActive = activeTab === tab.id || (tab.id === 'emulation' && activeTab === 'rules');
 
           return (
             <button
@@ -259,29 +258,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Icon className="w-4 h-4" />
-              <span className="text-[9px]">{tab.label.split(' ')[0]}</span>
+              <span className="text-[9px]">{tab.label}</span>
             </button>
           );
         })}
-        <button
-          onClick={() => setActiveTab('duty')}
-          className={`flex flex-col items-center justify-center p-1.5 rounded-xl text-[10px] font-bold transition-all ${
-            activeTab === 'duty' ? 'text-blue-600 dark:text-blue-400 font-extrabold scale-105' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <Calendar className="w-4 h-4" />
-          <span className="text-[9px]">Trực Nhật</span>
-        </button>
-
-        {/* Quick Theme Toggle in Mobile Bottom Bar */}
-        <button
-          onClick={onToggleTheme}
-          title="Đổi giao diện Sáng/Tối"
-          className="flex flex-col items-center justify-center p-1.5 rounded-xl text-[10px] font-bold text-amber-500 dark:text-amber-400 transition-all"
-        >
-          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          <span className="text-[9px]">{theme === 'dark' ? 'Sáng' : 'Tối'}</span>
-        </button>
       </div>
     </>
   );

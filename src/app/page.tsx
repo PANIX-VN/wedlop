@@ -1,16 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Navbar } from '../components/Navbar';
-import { SeatingChart } from '../components/SeatingChart/SeatingChart';
-import { AttendanceManager } from '../components/Attendance/AttendanceManager';
-import { RuleLookup } from '../components/RuleLookup/RuleLookup';
-import { DutyScheduleManager } from '../components/DutySchedule/DutyScheduleManager';
-import { LoginModal } from '../components/LoginModal';
-import { AdminPanel } from '../components/Admin/AdminPanel';
-import { StudentManager } from '../components/Admin/StudentManager';
-import { DevToolsProtection } from '../components/DevToolsProtection';
-import { EmulationChoiceModal } from '../components/EmulationChoiceModal';
+import {
+  Navbar,
+  SeatingChart,
+  AttendanceManager,
+  RuleLookup,
+  DutyScheduleManager,
+  LoginModal,
+  AdminPanel,
+  StudentManager,
+  DevToolsProtection,
+  EmulationChoiceModal,
+} from '../components';
 
 import { Student, RuleItem, ColumnRow, AttendanceRecord, DynamicDutyRecord, AuthUser, CustomRoleDefinition } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT, INITIAL_DUTY_TASKS } from '../data/initialData';

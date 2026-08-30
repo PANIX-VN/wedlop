@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Award, FileSearch, ExternalLink, X, ShieldCheck, ArrowRight } from 'lucide-react';
-import { EMULATION_SHEET_URL } from '../data/accounts';
+import { Award, FileSearch, ExternalLink, X, ArrowRight } from 'lucide-react';
+import { EMULATION_SHEET_URL } from '../../data/accounts';
 
 interface EmulationChoiceModalProps {
   isOpen: boolean;

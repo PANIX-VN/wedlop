@@ -65,7 +65,6 @@ export const DevToolsProtection: React.FC = () => {
 
     // 3. Prevent Right Click Context Menu (Inspect Element)
     const handleContextMenu = (e: MouseEvent) => {
-      // Allow right-click only if user holds Shift key (for accessibility) otherwise block inspect
       if (!e.shiftKey) {
         e.preventDefault();
         e.stopPropagation();
