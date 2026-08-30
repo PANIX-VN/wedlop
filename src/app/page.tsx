@@ -10,7 +10,7 @@ import { LoginModal } from '../components/LoginModal';
 import { AdminPanel } from '../components/Admin/AdminPanel';
 import { StudentManager } from '../components/Admin/StudentManager';
 
-import { Student, RuleItem, ColumnRow, AttendanceRecord, DynamicDutyRecord, AuthUser } from '../data/types';
+import { Student, RuleItem, ColumnRow, AttendanceRecord, DynamicDutyRecord, AuthUser, CustomRoleDefinition } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT, INITIAL_DUTY_TASKS } from '../data/initialData';
 import { getRolePermissions } from '../data/accounts';
 import { useScreenLayout } from '../hooks/useScreenLayout';
