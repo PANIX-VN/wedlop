@@ -3,9 +3,10 @@
 /.pnpm
 /.pnpm-store
 
-# next.js
+# next.js build & cache
 /.next/
 /out/
+/.turbo/
 
 # production
 /build
@@ -13,8 +14,9 @@
 # misc
 .DS_Store
 *.pem
+*.log
 
-# debug
+# debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
