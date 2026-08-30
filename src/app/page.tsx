@@ -25,6 +25,7 @@ import {
   loadAttendance, saveAttendance,
   loadDutyRecords, saveDutyRecords,
   loadAuthUser, saveAuthUser,
+  loadUserRoles, loadCustomRoles,
   recordAuditLog,
 } from '../utils/storage';
 
@@ -53,7 +54,10 @@ export default function Home() {
     setSeatingLayout(loadSeating());
     setAttendanceRecords(loadAttendance());
     setDutyRecords(loadDutyRecords());
-    setCurrentUser(loadAuthUser());
+    // Async encrypted loads
+    loadAuthUser().then(u => { if (u) setCurrentUser(u); });
+    loadUserRoles().then(r => setUserRolesMap(r));
+    loadCustomRoles().then(r => setCustomRoles(r));
 
     // Load Theme preference
     const savedTheme = localStorage.getItem('11a7_theme') as 'light' | 'dark' | null;

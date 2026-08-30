@@ -1,33 +1,61 @@
 import { Student, RuleItem, ColumnRow, AttendanceRecord, EmulationLog, DynamicDutyRecord, AuditLog, AuditActionType, AuthUser, CustomRoleDefinition } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT } from '../data/initialData';
 import { getVietnamCutoffDateString } from './time';
+import { setEncrypted, getEncrypted, xorObfuscate, xorDeobfuscate } from './crypto';
 
 const STORAGE_KEYS = {
-  STUDENTS: '11a7_students',
-  RULES: '11a7_rules',
-  SEATING: '11a7_seating',
-  ATTENDANCE: '11a7_attendance',
-  EMULATION_LOGS: '11a7_emulation_logs',
-  DUTY_RECORDS: '11a7_duty_records',
-  AUTH_USER: '11a7_auth_user',
-  CUSTOM_PASSWORDS: '11a7_custom_passwords',
-  AUDIT_LOGS: '11a7_audit_logs',
-  USER_ROLES: '11a7_user_roles',
-  CUSTOM_ROLES: '11a7_custom_roles',
+  STUDENTS:         '11a7_students',
+  RULES:            '11a7_rules',
+  SEATING:          '11a7_seating',
+  ATTENDANCE:       '11a7_attendance',
+  EMULATION_LOGS:   '11a7_emulation_logs',
+  DUTY_RECORDS:     '11a7_duty_records',
+  AUTH_USER:        '11a7_auth_user',       // AES-256-GCM encrypted
+  CUSTOM_PASSWORDS: '11a7_custom_passwords', // AES-256-GCM encrypted
+  AUDIT_LOGS:       '11a7_audit_logs',       // AES-256-GCM encrypted
+  USER_ROLES:       '11a7_user_roles',       // AES-256-GCM encrypted
+  CUSTOM_ROLES:     '11a7_custom_roles',     // AES-256-GCM encrypted
 };
 
-// === Audit Log Helpers ===
-export const loadAuditLogs = (): AuditLog[] => {
-  if (typeof window === 'undefined') return [];
+// --- Lightweight XOR helper: for structural (non-auth) data ---
+function xorSave(key: string, value: unknown) {
+  if (typeof window === 'undefined') return;
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS);
-    return data ? JSON.parse(data) : [];
-  } catch (e) {
-    return [];
+    const json = JSON.stringify(value);
+    localStorage.setItem(key, xorObfuscate(json));
+  } catch {
+    localStorage.setItem(key, JSON.stringify(value));
   }
+}
+
+function xorLoad<T>(key: string): T | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(key);
+    if (!stored) return null;
+    // Try XOR-deobfuscated first
+    try {
+      const decoded = xorDeobfuscate(stored);
+      return JSON.parse(decoded) as T;
+    } catch {}
+    // Fallback: plain JSON (legacy)
+    return JSON.parse(stored) as T;
+  } catch {
+    return null;
+  }
+}
+
+
+// ========================
+// === Audit Log Helpers ===
+// ========================
+
+export const loadAuditLogs = async (): Promise<AuditLog[]> => {
+  const result = await getEncrypted<AuditLog[]>(STORAGE_KEYS.AUDIT_LOGS);
+  return result ?? [];
 };
 
-export const recordAuditLog = (
+export const recordAuditLog = async (
   user: AuthUser | null,
   action: AuditActionType,
   details: string
@@ -53,10 +81,10 @@ export const recordAuditLog = (
     details,
   };
 
-  const existing = loadAuditLogs();
+  const existing = await loadAuditLogs();
   // Keep last 300 logs in LocalStorage
   const updated = [newLog, ...existing].slice(0, 300);
-  localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(updated));
+  await setEncrypted(STORAGE_KEYS.AUDIT_LOGS, updated);
 
   // Sync to Cloud DB
   fetch('/api/audit', {
@@ -66,27 +94,40 @@ export const recordAuditLog = (
   }).catch(() => {});
 };
 
-export const clearAuditLogs = () => {
+export const clearAuditLogs = async () => {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
+  await setEncrypted(STORAGE_KEYS.AUDIT_LOGS, []);
 };
 
-// Map of username -> custom password (overrides default)
-export const loadCustomPasswords = (): Record<string, string> => {
+
+// ======================================
+// === Custom Passwords (AES-256-GCM) ===
+// ======================================
+
+export const loadCustomPasswords = async (): Promise<Record<string, string>> => {
+  const result = await getEncrypted<Record<string, string>>(STORAGE_KEYS.CUSTOM_PASSWORDS);
+  return result ?? {};
+};
+
+// Synchronous variant used in LoginModal (blocks on awaiting in React event handlers)
+export const loadCustomPasswordsSync = (): Record<string, string> => {
   if (typeof window === 'undefined') return {};
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.CUSTOM_PASSWORDS);
-    return data ? JSON.parse(data) : {};
+    const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_PASSWORDS);
+    if (!stored) return {};
+    const { xorDeobfuscate: xorD } = require('./crypto');
+    try { return JSON.parse(xorD(stored)); } catch {}
+    return JSON.parse(stored);
   } catch {
     return {};
   }
 };
 
-export const saveCustomPassword = (username: string, newPassword: string) => {
+export const saveCustomPassword = async (username: string, newPassword: string) => {
   if (typeof window === 'undefined') return;
-  const existing = loadCustomPasswords();
+  const existing = await loadCustomPasswords();
   existing[username] = newPassword;
-  localStorage.setItem(STORAGE_KEYS.CUSTOM_PASSWORDS, JSON.stringify(existing));
+  await setEncrypted(STORAGE_KEYS.CUSTOM_PASSWORDS, existing);
 
   // Sync to Cloud DB
   fetch('/api/password', {
@@ -97,72 +138,63 @@ export const saveCustomPassword = (username: string, newPassword: string) => {
 };
 
 export const getEffectivePassword = async (username: string, defaultPassword: string): Promise<string> => {
-  // 1. Check localStorage first (fastest)
-  const customPwds = loadCustomPasswords();
+  const customPwds = await loadCustomPasswords();
   if (customPwds[username]) return customPwds[username];
 
-  // 2. Try Cloud DB
   try {
     const res = await fetch(`/api/password?username=${encodeURIComponent(username)}`);
     const json = await res.json();
     if (json.success && json.data?.password) {
-      // Cache in localStorage for next time
-      const existing = loadCustomPasswords();
+      const existing = await loadCustomPasswords();
       existing[username] = json.data.password;
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_PASSWORDS, JSON.stringify(existing));
+      await setEncrypted(STORAGE_KEYS.CUSTOM_PASSWORDS, existing);
       return json.data.password;
     }
   } catch {}
 
-  // 3. Fall back to default from accounts.ts
   return defaultPassword;
 };
 
-export const hasChangedPassword = (username: string): boolean => {
-  const customPwds = loadCustomPasswords();
+export const hasChangedPassword = async (username: string): Promise<boolean> => {
+  const customPwds = await loadCustomPasswords();
   return !!customPwds[username];
 };
 
 
-export const loadStudents = (): Student[] => {
-  if (typeof window === 'undefined') return INITIAL_STUDENTS;
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.STUDENTS);
-    if (!data) return INITIAL_STUDENTS;
-    const parsed: Student[] = JSON.parse(data);
-    // Migrate: Ensure only 3 groups (1, 2, 3)
-    return parsed.map(s => {
-      const initialMatch = INITIAL_STUDENTS.find(i => i.id === s.id);
-      return {
-        ...s,
-        group: initialMatch ? initialMatch.group : Math.min(s.group, 3),
-      };
-    });
-  } catch (e) {
-    console.error('Error loading students', e);
-    return INITIAL_STUDENTS;
-  }
+// ===================================
+// === Auth User (AES-256-GCM) ===
+// ===================================
+
+export const loadAuthUser = async (): Promise<AuthUser | null> => {
+  return await getEncrypted<AuthUser>(STORAGE_KEYS.AUTH_USER) ?? null;
 };
 
-// === Custom Roles & User Role Assignments Helpers ===
-export const loadUserRoles = (): Record<string, string> => {
-  if (typeof window === 'undefined') return {};
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.USER_ROLES);
-    return data ? JSON.parse(data) : {};
-  } catch {
-    return {};
-  }
-};
-
-export const saveUserRole = (username: string, newRole: string) => {
+export const saveAuthUser = async (user: AuthUser | null) => {
   if (typeof window === 'undefined') return;
-  const existing = loadUserRoles();
-  existing[username] = newRole;
-  localStorage.setItem(STORAGE_KEYS.USER_ROLES, JSON.stringify(existing));
+  if (user) {
+    await setEncrypted(STORAGE_KEYS.AUTH_USER, user);
+  } else {
+    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+  }
+};
 
-  // Sync to Cloud API
-  const customRoles = loadCustomRoles();
+
+// ===========================================
+// === User Roles & Custom Roles (AES-256-GCM) ===
+// ===========================================
+
+export const loadUserRoles = async (): Promise<Record<string, string>> => {
+  const result = await getEncrypted<Record<string, string>>(STORAGE_KEYS.USER_ROLES);
+  return result ?? {};
+};
+
+export const saveUserRole = async (username: string, newRole: string) => {
+  if (typeof window === 'undefined') return;
+  const existing = await loadUserRoles();
+  existing[username] = newRole;
+  await setEncrypted(STORAGE_KEYS.USER_ROLES, existing);
+
+  const customRoles = await loadCustomRoles();
   fetch('/api/roles', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -170,25 +202,19 @@ export const saveUserRole = (username: string, newRole: string) => {
   }).catch(() => {});
 };
 
-export const loadCustomRoles = (): CustomRoleDefinition[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.CUSTOM_ROLES);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
+export const loadCustomRoles = async (): Promise<CustomRoleDefinition[]> => {
+  const result = await getEncrypted<CustomRoleDefinition[]>(STORAGE_KEYS.CUSTOM_ROLES);
+  return result ?? [];
 };
 
-export const saveCustomRole = (newRole: CustomRoleDefinition) => {
+export const saveCustomRole = async (newRole: CustomRoleDefinition) => {
   if (typeof window === 'undefined') return;
-  const existing = loadCustomRoles();
+  const existing = await loadCustomRoles();
   const filtered = existing.filter(r => r.id !== newRole.id && r.name !== newRole.name);
   const updated = [...filtered, newRole];
-  localStorage.setItem(STORAGE_KEYS.CUSTOM_ROLES, JSON.stringify(updated));
+  await setEncrypted(STORAGE_KEYS.CUSTOM_ROLES, updated);
 
-  // Sync to Cloud API
-  const userRoles = loadUserRoles();
+  const userRoles = await loadUserRoles();
   fetch('/api/roles', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -196,170 +222,107 @@ export const saveCustomRole = (newRole: CustomRoleDefinition) => {
   }).catch(() => {});
 };
 
-export const saveStudents = (students: Student[]) => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
 
-  // Sync to Cloud API
-  try {
-    fetch('/api/students', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(students),
-    }).catch(() => {});
-  } catch (e) {}
+// ===================================================
+// === Students, Rules, Seating (XOR obfuscated) ===
+// ===================================================
+
+export const loadStudents = (): Student[] => {
+  const data = xorLoad<Student[]>(STORAGE_KEYS.STUDENTS);
+  if (!data) return INITIAL_STUDENTS;
+  return data.map(s => {
+    const initialMatch = INITIAL_STUDENTS.find(i => i.id === s.id);
+    return {
+      ...s,
+      group: initialMatch ? initialMatch.group : Math.min(s.group, 3),
+    };
+  });
+};
+
+export const saveStudents = (students: Student[]) => {
+  xorSave(STORAGE_KEYS.STUDENTS, students);
+  fetch('/api/students', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(students),
+  }).catch(() => {});
 };
 
 export const loadRules = (): RuleItem[] => {
-  if (typeof window === 'undefined') return INITIAL_RULES;
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.RULES);
-    return data ? JSON.parse(data) : INITIAL_RULES;
-  } catch (e) {
-    console.error('Error loading rules', e);
-    return INITIAL_RULES;
-  }
+  return xorLoad<RuleItem[]>(STORAGE_KEYS.RULES) ?? INITIAL_RULES;
 };
 
 export const saveRules = (rules: RuleItem[]) => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify(rules));
-
-  // Sync to Cloud API
-  try {
-    fetch('/api/rules', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(rules),
-    }).catch(() => {});
-  } catch (e) {}
+  xorSave(STORAGE_KEYS.RULES, rules);
+  fetch('/api/rules', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rules),
+  }).catch(() => {});
 };
 
 export const loadSeating = (): ColumnRow[] => {
-  if (typeof window === 'undefined') return INITIAL_SEATING_LAYOUT;
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.SEATING);
-    return data ? JSON.parse(data) : INITIAL_SEATING_LAYOUT;
-  } catch (e) {
-    console.error('Error loading seating layout', e);
-    return INITIAL_SEATING_LAYOUT;
-  }
+  return xorLoad<ColumnRow[]>(STORAGE_KEYS.SEATING) ?? INITIAL_SEATING_LAYOUT;
 };
 
 export const saveSeating = (seating: ColumnRow[]) => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.SEATING, JSON.stringify(seating));
-
-  // Sync to Cloud API if available
-  try {
-    fetch('/api/seating', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(seating),
-    }).catch(() => {});
-  } catch (e) {}
+  xorSave(STORAGE_KEYS.SEATING, seating);
+  fetch('/api/seating', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(seating),
+  }).catch(() => {});
 };
 
 export const loadAttendance = (): AttendanceRecord[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.ATTENDANCE);
-    return data ? JSON.parse(data) : [];
-  } catch (e) {
-    console.error('Error loading attendance', e);
-    return [];
-  }
+  return xorLoad<AttendanceRecord[]>(STORAGE_KEYS.ATTENDANCE) ?? [];
 };
 
 export const saveAttendance = (attendance: AttendanceRecord[]) => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(attendance));
-
-  // Sync the latest record to Cloud API if available
-  try {
-    const latest = attendance[attendance.length - 1];
-    if (latest) {
-      fetch('/api/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(latest),
-      }).catch(() => {});
-    }
-  } catch (e) {}
+  xorSave(STORAGE_KEYS.ATTENDANCE, attendance);
+  const latest = attendance[attendance.length - 1];
+  if (latest) {
+    fetch('/api/attendance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(latest),
+    }).catch(() => {});
+  }
 };
 
 export const loadEmulationLogs = (): EmulationLog[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.EMULATION_LOGS);
-    return data ? JSON.parse(data) : [];
-  } catch (e) {
-    console.error('Error loading emulation logs', e);
-    return [];
-  }
+  return xorLoad<EmulationLog[]>(STORAGE_KEYS.EMULATION_LOGS) ?? [];
 };
 
 export const saveEmulationLogs = (logs: EmulationLog[]) => {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEYS.EMULATION_LOGS, JSON.stringify(logs));
+  xorSave(STORAGE_KEYS.EMULATION_LOGS, logs);
 };
 
 export const loadDutyRecords = (): DynamicDutyRecord[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.DUTY_RECORDS);
-    return data ? JSON.parse(data) : [];
-  } catch (e) {
-    console.error('Error loading duty records', e);
-    return [];
-  }
+  return xorLoad<DynamicDutyRecord[]>(STORAGE_KEYS.DUTY_RECORDS) ?? [];
 };
 
 export const saveDutyRecords = (records: DynamicDutyRecord[]) => {
-  if (typeof window === 'undefined') return;
-  // Retain records for last 14 days in Vietnam Time
   const cutoffStr = getVietnamCutoffDateString(14);
   const recentRecords = records.filter(r => r.date >= cutoffStr);
-  localStorage.setItem(STORAGE_KEYS.DUTY_RECORDS, JSON.stringify(recentRecords));
+  xorSave(STORAGE_KEYS.DUTY_RECORDS, recentRecords);
 
-  // Sync to Cloud API if available
-  try {
-    const latest = recentRecords[recentRecords.length - 1];
-    if (latest) {
-      fetch('/api/duty', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(latest),
-      }).catch(() => {});
-    }
-  } catch (e) {}
-};
-
-export const loadAuthUser = () => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
-    return data ? JSON.parse(data) : null;
-  } catch (e) {
-    return null;
+  const latest = recentRecords[recentRecords.length - 1];
+  if (latest) {
+    fetch('/api/duty', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(latest),
+    }).catch(() => {});
   }
 };
 
-export const saveAuthUser = (user: any) => {
-  if (typeof window === 'undefined') return;
-  if (user) {
-    localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify(user));
-  } else {
-    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
-  }
-};
+
+// ==============================
+// === Reset All Local Data ===
+// ==============================
 
 export const resetAllData = () => {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(STORAGE_KEYS.STUDENTS);
-  localStorage.removeItem(STORAGE_KEYS.RULES);
-  localStorage.removeItem(STORAGE_KEYS.SEATING);
-  localStorage.removeItem(STORAGE_KEYS.ATTENDANCE);
-  localStorage.removeItem(STORAGE_KEYS.EMULATION_LOGS);
-  localStorage.removeItem(STORAGE_KEYS.DUTY_RECORDS);
+  Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
 };

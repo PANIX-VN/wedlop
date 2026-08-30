@@ -93,10 +93,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
   });
 
   // Load accounts & roles
-  const refreshAccounts = () => {
-    const customPwds = loadCustomPasswords();
-    const loadedRolesMap = loadUserRoles();
-    const loadedCustomRoles = loadCustomRoles();
+  const refreshAccounts = async () => {
+    const customPwds = await loadCustomPasswords();
+    const loadedRolesMap = await loadUserRoles();
+    const loadedCustomRoles = await loadCustomRoles();
     setUserRolesMap(loadedRolesMap);
     setCustomRoles(loadedCustomRoles);
 
@@ -114,7 +114,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
 
   // Load audit logs
   const refreshAuditLogs = async () => {
-    const local = loadAuditLogs();
+    const local = await loadAuditLogs();
     setAuditLogs(local);
 
     try {

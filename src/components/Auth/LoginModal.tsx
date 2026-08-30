@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { CLASS_ACCOUNTS } from '../../data/accounts';
 import { AuthUser } from '../../data/types';
 import { loadCustomPasswords, hasChangedPassword, loadUserRoles } from '../../utils/storage';
+import { setEncrypted } from '../../utils/crypto';
 import { LogIn, X, User, Key, ShieldCheck, AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { ChangePasswordModal } from './ChangePasswordModal';
 
@@ -52,7 +53,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     let effectivePassword = found.password;
 
     // 1. Check localStorage cache
-    const customPwds = loadCustomPasswords();
+    const customPwds = await loadCustomPasswords();
     if (customPwds[found.username]) {
       effectivePassword = customPwds[found.username];
     } else {
@@ -63,9 +64,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         if (json.success && json.data?.password) {
           effectivePassword = json.data.password;
           // Cache locally
-          const existing = loadCustomPasswords();
+          const existing = await loadCustomPasswords();
           existing[found.username] = json.data.password;
-          localStorage.setItem('11a7_custom_passwords', JSON.stringify(existing));
+          await setEncrypted('11a7_custom_passwords', existing);
         }
       } catch {
         // No internet / no DB — use local/default
@@ -80,7 +81,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     setLoading(false);
 
-    const customUserRoles = loadUserRoles();
+    const customUserRoles = await loadUserRoles();
     const effectiveRole = customUserRoles[found.username] || found.role;
 
     const user: AuthUser = {
@@ -91,7 +92,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     };
 
     // Check if this is first login (never changed password)
-    const alreadyChangedPwd = hasChangedPassword(found.username) || !!customPwds[found.username];
+    const alreadyChangedPwd = (await hasChangedPassword(found.username)) || !!customPwds[found.username];
 
     // GVCN and ADMIN are exempt from forced change
     if (!alreadyChangedPwd && found.role !== 'GVCN' && found.role !== 'ADMIN') {

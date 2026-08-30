@@ -1,20 +1,3 @@
-/**
- * WARNING — In-Memory Rate Limiter (Vercel Serverless Limitation)
- *
- * This rate limiter uses a Node.js in-memory Map. On Vercel serverless functions,
- * each function instance runs in its own isolated environment with separate memory.
- * This means:
- *  - The rate limiter WILL work for single-instance abuse (same lambda instance)
- *  - It WILL NOT stop distributed or cross-instance attacks reliably
- *
- * For production-grade distributed rate limiting, consider:
- *  - Vercel KV (https://vercel.com/storage/kv)
- *  - Upstash Redis (https://upstash.com)
- *  - Cloudflare Rate Limiting
- *
- * The current implementation still provides meaningful protection against
- * naive bots/scrapers and is acceptable for a school-class management app.
- */
 import { NextResponse } from 'next/server';
 
 interface RateLimitStore {

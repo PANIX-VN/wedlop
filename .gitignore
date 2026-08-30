@@ -16,8 +16,6 @@
 *.pem
 *.log
 
-# local data / source documents (do not commit real student data)
-/idk/
 # debug logs
 npm-debug.log*
 yarn-debug.log*
