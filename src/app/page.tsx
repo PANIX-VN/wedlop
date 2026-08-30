@@ -333,18 +333,6 @@ export default function Home() {
         onClose={() => setIsEmulationChoiceOpen(false)}
         onSelectLookup={() => setActiveTab('rules')}
       />
-
-      {/* Footer */}
-      <footer className="hidden sm:block glass-nav border-t border-slate-200/80 dark:border-slate-800 py-5 text-center text-xs text-slate-500 dark:text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="font-bold text-slate-700 dark:text-slate-300">
-            ✨ Hệ Thống Quản Lý Lớp Học Thông Minh 11A7
-          </p>
-          <p className="text-[11px] text-slate-400 dark:text-slate-500">
-            Chế độ: <strong className="text-blue-600 dark:text-blue-400">{theme === 'dark' ? '🌙 Giao diện Tối (Dark Mode)' : '☀️ Giao diện Sáng (Light Mode)'}</strong> • Tương thích mọi thiết bị
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

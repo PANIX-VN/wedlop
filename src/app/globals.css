@@ -110,16 +110,32 @@ body {
 .glow-blue { box-shadow: var(--shadow-glow-blue); }
 .glow-indigo { box-shadow: var(--shadow-glow-indigo); }
 
-/* === Smooth Animations === */
+/* === Smooth Animations & Micro-Interactions === */
+@keyframes scale-in {
+  0% { opacity: 0; transform: scale(0.94) translateY(6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-scale-in {
+  animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slide-down {
+  0% { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-down {
+  animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.92; transform: scale(1.025); }
+  50% { opacity: 0.92; transform: scale(1.02); }
 }
 .animate-pulse-subtle { animation: pulse-subtle 3s ease-in-out infinite; }
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
+  50% { transform: translateY(-4px); }
 }
 .animate-float { animation: float 4s ease-in-out infinite; }
 
@@ -127,24 +143,36 @@ body {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-.animate-spin-slow { animation: spin-slow 8s linear infinite; }
+.animate-spin-slow { animation: spin-slow 10s linear infinite; }
 
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
 
-/* === Button Press Effect === */
-button { transition: transform 0.12s ease, opacity 0.12s ease; }
-button:active:not(:disabled) { transform: scale(0.96); }
+/* === Button Micro-Interactions & Hover Effects === */
+button, a {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.15s ease;
+}
+button:active:not(:disabled), a:active {
+  transform: scale(0.95);
+}
+
+/* === Interactive Glass Cards === */
+.glass-card-interactive {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.glass-card-interactive:hover {
+  transform: translateY(-3px) scale(1.005);
+}
 
 /* === Drag & Drop Feedback === */
-.dragging { opacity: 0.4; transform: scale(0.97); transition: all 0.1s ease; }
+.dragging { opacity: 0.4; transform: scale(0.97); transition: all 0.15s ease; }
 
 /* === Sticky Columns for Mobile Tables === */
 .sticky-col-first {
@@ -192,7 +220,7 @@ button:active:not(:disabled) { transform: scale(0.96); }
 
 /* === Card Hover Lift === */
 .hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 .hover-lift:hover {
   transform: translateY(-2px);
