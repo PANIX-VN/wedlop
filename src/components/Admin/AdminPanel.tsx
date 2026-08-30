@@ -632,6 +632,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
               )}
             </div>
           </div>
+        </div>
+      )}
+
       {/* Modal Thêm Vai Trò Mới */}
       {showAddRoleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
