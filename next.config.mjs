@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // 1. Hide original source code files (.tsx, .ts) in browser DevTools Sources tab
+  productionBrowserSourceMaps: false,
+  
+  // 2. Security Headers
   async headers() {
     return [
       {

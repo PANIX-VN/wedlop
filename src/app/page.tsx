@@ -9,6 +9,7 @@ import { DutyScheduleManager } from '../components/DutySchedule/DutyScheduleMana
 import { LoginModal } from '../components/LoginModal';
 import { AdminPanel } from '../components/Admin/AdminPanel';
 import { StudentManager } from '../components/Admin/StudentManager';
+import { DevToolsProtection } from '../components/DevToolsProtection';
 
 import { Student, RuleItem, ColumnRow, AttendanceRecord, DynamicDutyRecord, AuthUser, CustomRoleDefinition } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT, INITIAL_DUTY_TASKS } from '../data/initialData';
@@ -217,6 +218,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <DevToolsProtection />
       {/* Top Navbar with Dark/Light Toggle */}
       <Navbar
         activeTab={activeTab}
