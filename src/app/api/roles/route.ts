@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { checkRateLimit, checkPayloadSize } from '../../../utils/rateLimit';
+import { sanitizeObject } from '../../../utils/security';
 
 // GET: Fetch custom roles and user role assignments from database
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const rateCheck = checkRateLimit(req, 60, 60 * 1000);
+    if (!rateCheck.success && rateCheck.response) return rateCheck.response;
+
     if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
       return NextResponse.json({ success: true, userRoles: {}, customRoles: [] });
     }
@@ -32,15 +37,22 @@ export async function GET() {
 
     return NextResponse.json({ success: true, userRoles: {}, customRoles: [] });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message, userRoles: {}, customRoles: [] });
+    return NextResponse.json({ success: false, error: 'Server error', userRoles: {}, customRoles: [] }, { status: 500 });
   }
 }
 
 // POST: Save custom roles and user role assignments to database
 export async function POST(req: Request) {
   try {
+    const rateCheck = checkRateLimit(req, 15, 60 * 1000);
+    if (!rateCheck.success && rateCheck.response) return rateCheck.response;
+
+    const payloadCheck = checkPayloadSize(req, 500 * 1024); // max 500KB
+    if (!payloadCheck.success && payloadCheck.response) return payloadCheck.response;
+
     const body = await req.json();
-    const { userRoles, customRoles } = body;
+    const cleanUserRoles = sanitizeObject(body?.userRoles || {});
+    const cleanCustomRoles = sanitizeObject(body?.customRoles || []);
 
     if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
       return NextResponse.json({ success: true, message: 'Local mode' });
@@ -57,12 +69,12 @@ export async function POST(req: Request) {
 
     await sql`
       INSERT INTO roles_store (id, user_roles, custom_roles, updated_at)
-      VALUES (1, ${JSON.stringify(userRoles || {})}::jsonb, ${JSON.stringify(customRoles || [])}::jsonb, NOW())
+      VALUES (1, ${JSON.stringify(cleanUserRoles)}::jsonb, ${JSON.stringify(cleanCustomRoles)}::jsonb, NOW())
       ON CONFLICT (id) DO UPDATE SET user_roles = EXCLUDED.user_roles, custom_roles = EXCLUDED.custom_roles, updated_at = NOW()
     `;
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message });
+    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
 }
