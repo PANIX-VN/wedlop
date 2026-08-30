@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "^7.10.0",
     "@vercel/postgres": "^0.10.0",
     "@vercel/speed-insights": "^2.0.0",
     "autoprefixer": "^10.5.4",
@@ -20,8 +19,7 @@
     "postcss": "^8.5.26",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwindcss": "^3.4.19",
-    "xlsx": "^0.18.5"
+    "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
     "@types/node": "26.4.0",
