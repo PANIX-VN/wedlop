@@ -23,8 +23,8 @@ export const EmulationChoiceModal: React.FC<EmulationChoiceModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-md shadow-amber-500/20">
-              <Award className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 p-0.5 shadow-md shadow-amber-500/10 border border-slate-100 dark:border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+              <img src="/logo.png" alt="Logo Lớp 11A7" className="w-full h-full object-contain" />
             </div>
             <div>
               <h3 className="font-black text-slate-800 dark:text-white text-base">Thi Đua & Tra Cứu Lớp 11A7</h3>

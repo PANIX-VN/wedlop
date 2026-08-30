@@ -90,8 +90,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center justify-between h-16">
             {/* Brand Logo & Class Title */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-blue-500/20 ring-2 ring-white/60 dark:ring-slate-700">
-                11A7
+              <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 p-0.5 shadow-md shadow-blue-500/10 ring-2 ring-white/60 dark:ring-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                <img src="/logo.png" alt="Logo Trung Tâm GDNN-GDTX Tỉnh Quảng Ninh" className="w-full h-full object-contain" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
