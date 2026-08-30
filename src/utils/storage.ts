@@ -1,4 +1,4 @@
-import { Student, RuleItem, ColumnRow, AttendanceRecord, EmulationLog, DynamicDutyRecord, AuditLog, AuditActionType, AuthUser } from '../data/types';
+import { Student, RuleItem, ColumnRow, AttendanceRecord, EmulationLog, DynamicDutyRecord, AuditLog, AuditActionType, AuthUser, CustomRoleDefinition } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT } from '../data/initialData';
 import { getVietnamCutoffDateString } from './time';
 
@@ -12,6 +12,8 @@ const STORAGE_KEYS = {
   AUTH_USER: '11a7_auth_user',
   CUSTOM_PASSWORDS: '11a7_custom_passwords',
   AUDIT_LOGS: '11a7_audit_logs',
+  USER_ROLES: '11a7_user_roles',
+  CUSTOM_ROLES: '11a7_custom_roles',
 };
 
 // === Audit Log Helpers ===
@@ -142,9 +144,70 @@ export const loadStudents = (): Student[] => {
   }
 };
 
+// === Custom Roles & User Role Assignments Helpers ===
+export const loadUserRoles = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.USER_ROLES);
+    return data ? JSON.parse(data) : {};
+  } catch {
+    return {};
+  }
+};
+
+export const saveUserRole = (username: string, newRole: string) => {
+  if (typeof window === 'undefined') return;
+  const existing = loadUserRoles();
+  existing[username] = newRole;
+  localStorage.setItem(STORAGE_KEYS.USER_ROLES, JSON.stringify(existing));
+
+  // Sync to Cloud API
+  const customRoles = loadCustomRoles();
+  fetch('/api/roles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userRoles: existing, customRoles }),
+  }).catch(() => {});
+};
+
+export const loadCustomRoles = (): CustomRoleDefinition[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.CUSTOM_ROLES);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveCustomRole = (newRole: CustomRoleDefinition) => {
+  if (typeof window === 'undefined') return;
+  const existing = loadCustomRoles();
+  const filtered = existing.filter(r => r.id !== newRole.id && r.name !== newRole.name);
+  const updated = [...filtered, newRole];
+  localStorage.setItem(STORAGE_KEYS.CUSTOM_ROLES, JSON.stringify(updated));
+
+  // Sync to Cloud API
+  const userRoles = loadUserRoles();
+  fetch('/api/roles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userRoles, customRoles: updated }),
+  }).catch(() => {});
+};
+
 export const saveStudents = (students: Student[]) => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+
+  // Sync to Cloud API
+  try {
+    fetch('/api/students', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(students),
+    }).catch(() => {});
+  } catch (e) {}
 };
 
 export const loadRules = (): RuleItem[] => {
@@ -161,6 +224,15 @@ export const loadRules = (): RuleItem[] => {
 export const saveRules = (rules: RuleItem[]) => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify(rules));
+
+  // Sync to Cloud API
+  try {
+    fetch('/api/rules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rules),
+    }).catch(() => {});
+  } catch (e) {}
 };
 
 export const loadSeating = (): ColumnRow[] => {

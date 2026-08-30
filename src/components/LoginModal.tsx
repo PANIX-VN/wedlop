@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { CLASS_ACCOUNTS } from '../data/accounts';
 import { AuthUser } from '../data/types';
-import { loadCustomPasswords, hasChangedPassword } from '../utils/storage';
+import { loadCustomPasswords, hasChangedPassword, loadUserRoles } from '../utils/storage';
 import { LogIn, X, User, Key, ShieldCheck, AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { ChangePasswordModal } from './ChangePasswordModal';
 
@@ -81,10 +81,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     setLoading(false);
 
+    const customUserRoles = loadUserRoles();
+    const effectiveRole = customUserRoles[found.username] || found.role;
+
     const user: AuthUser = {
       stt: found.stt,
       name: found.name,
-      role: found.role,
+      role: effectiveRole,
       username: found.username,
     };
 

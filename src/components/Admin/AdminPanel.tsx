@@ -5,11 +5,15 @@ import {
   ShieldAlert, User, Key, RefreshCw, CheckCircle2,
   Search, Eye, EyeOff, X, AlertCircle, Loader2,
   Lock, Unlock, ChevronDown, ChevronUp, Crown,
-  Activity, Clock, Calendar, Trash2, ShieldCheck, FileText, UserCheck, UserX, UserPlus, Edit3
+  Activity, Clock, Calendar, Trash2, ShieldCheck, FileText, UserCheck, UserX, UserPlus, Edit3, UserCog, Plus
 } from 'lucide-react';
 import { CLASS_ACCOUNTS, UserRole } from '../../data/accounts';
-import { loadCustomPasswords, saveCustomPassword, loadAuditLogs, clearAuditLogs, recordAuditLog } from '../../utils/storage';
-import { AuditLog, AuditActionType } from '../../data/types';
+import {
+  loadCustomPasswords, saveCustomPassword,
+  loadAuditLogs, clearAuditLogs, recordAuditLog,
+  loadUserRoles, saveUserRole, loadCustomRoles, saveCustomRole
+} from '../../utils/storage';
+import { AuditLog, AuditActionType, CustomRoleDefinition } from '../../data/types';
 
 interface AdminPanelProps {
   currentAdminUser: { username: string; name: string };
@@ -18,7 +22,7 @@ interface AdminPanelProps {
 interface AccountStatus {
   username: string;
   name: string;
-  role: UserRole;
+  role: string;
   stt: number;
   currentPassword: string;
   hasCustomPwd: boolean;
@@ -46,6 +50,8 @@ const ACTION_CONFIG: Record<AuditActionType, { label: string; color: string; ico
   DUTY_UPDATE:      { label: 'Trực Nhật',         color: 'bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 border-teal-300', icon: Calendar },
   SEATING_UPDATE:   { label: 'Sơ Đồ Chỗ Ngồi',    color: 'bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 border-purple-300', icon: ShieldCheck },
   RULE_UPDATE:      { label: 'Quy Định Lớp',      color: 'bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300 border-violet-300', icon: FileText },
+  ROLE_CHANGE:      { label: 'Đổi Vai Trò',       color: 'bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300 border-orange-300', icon: UserCog },
+  ROLE_CREATE:      { label: 'Tạo Vai Trò Mới',   color: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-950/50 dark:text-fuchsia-300 border-fuchsia-300', icon: Plus },
 };
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
@@ -71,13 +77,33 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
   const [auditActionFilter, setAuditActionFilter] = useState<string>('all');
   const [loadingCloudLogs, setLoadingCloudLogs] = useState(false);
 
-  // Load accounts
+  // Custom Roles State
+  const [customRoles, setCustomRoles] = useState<CustomRoleDefinition[]>([]);
+  const [userRolesMap, setUserRolesMap] = useState<Record<string, string>>({});
+  const [showAddRoleModal, setShowAddRoleModal] = useState(false);
+  const [newRoleName, setNewRoleName] = useState('');
+  const [newRoleDesc, setNewRoleDesc] = useState('');
+  const [newRolePermissions, setNewRolePermissions] = useState({
+    canFullControl: false,
+    canTakeAttendance: true,
+    canEditDuty: false,
+    canEditSeating: false,
+    canUploadRules: false,
+    canManageStudents: false,
+  });
+
+  // Load accounts & roles
   const refreshAccounts = () => {
     const customPwds = loadCustomPasswords();
+    const loadedRolesMap = loadUserRoles();
+    const loadedCustomRoles = loadCustomRoles();
+    setUserRolesMap(loadedRolesMap);
+    setCustomRoles(loadedCustomRoles);
+
     const statuses: AccountStatus[] = CLASS_ACCOUNTS.map(acc => ({
       username: acc.username,
       name: acc.name,
-      role: acc.role,
+      role: loadedRolesMap[acc.username] || acc.role,
       stt: acc.stt,
       currentPassword: customPwds[acc.username] ?? acc.password,
       hasCustomPwd: !!customPwds[acc.username],
@@ -101,6 +127,48 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
     } catch {} finally {
       setLoadingCloudLogs(false);
     }
+  };
+
+  const handleRoleChangeForUser = (username: string, newRole: string) => {
+    saveUserRole(username, newRole);
+    recordAuditLog(
+      { stt: -1, name: currentAdminUser.name, role: 'ADMIN', username: currentAdminUser.username },
+      'ROLE_CHANGE',
+      `Admin đã đổi vai trò tài khoản "${username}" thành "${newRole}"`
+    );
+    setSuccessMsg(`✓ Đã cập nhật vai trò của @${username} thành "${newRole}"!`);
+    refreshAccounts();
+    refreshAuditLogs();
+    setTimeout(() => setSuccessMsg(null), 4000);
+  };
+
+  const handleCreateCustomRole = () => {
+    if (!newRoleName.trim()) {
+      setErrorMsg('Vui lòng nhập tên vai trò mới!');
+      return;
+    }
+
+    const newRole: CustomRoleDefinition = {
+      id: `role_${Date.now()}`,
+      name: newRoleName.trim().toUpperCase(),
+      description: newRoleDesc.trim(),
+      permissions: newRolePermissions,
+    };
+
+    saveCustomRole(newRole);
+    recordAuditLog(
+      { stt: -1, name: currentAdminUser.name, role: 'ADMIN', username: currentAdminUser.username },
+      'ROLE_CREATE',
+      `Admin đã tạo vai trò mới: "${newRole.name}"`
+    );
+
+    setSuccessMsg(`✓ Đã tạo vai trò mới: ${newRole.name}!`);
+    setNewRoleName('');
+    setNewRoleDesc('');
+    setShowAddRoleModal(false);
+    refreshAccounts();
+    refreshAuditLogs();
+    setTimeout(() => setSuccessMsg(null), 4000);
   };
 
   useEffect(() => {
@@ -281,7 +349,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
             </div>
           )}
 
-          {/* Search & Filter */}
+          {/* Search & Filter & Create Custom Role Button */}
           <div className="glass-card rounded-3xl p-4 shadow-sm flex flex-col sm:flex-row items-center gap-3">
             <div className="relative flex-1 w-full">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -301,13 +369,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
               {roleOptions.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
+              {customRoles.map(cr => (
+                <option key={cr.id} value={cr.name}>{cr.name} (Tùy chỉnh)</option>
+              ))}
             </select>
+            <button
+              onClick={() => setShowAddRoleModal(true)}
+              className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl text-xs font-black shadow-sm transition-all flex items-center justify-center gap-1.5 shrink-0"
+            >
+              <Plus className="w-4 h-4" /> Tạo Vai Trò Mới
+            </button>
           </div>
 
           {/* Accounts List */}
           <div className="glass-card rounded-3xl shadow-sm overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
             {filteredAccounts.map(acc => {
-              const badge = ROLE_BADGE[acc.role] || { label: acc.role, color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' };
+              const badge = ROLE_BADGE[acc.role] || { label: acc.role, color: 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400 border-purple-200' };
               const isExpanded = expandedRows[acc.username];
               const isEditing = editingUsername === acc.username;
               const showPwdForRow = showCurrentPwd[acc.username];
@@ -340,6 +417,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
                     <div className="px-4 pb-4 bg-slate-50/70 dark:bg-slate-800/30 space-y-3 border-t border-slate-100 dark:border-slate-800 animate-in fade-in duration-150">
                       {!isEditing && (
                         <div className="pt-3 space-y-3">
+                          {/* Role Modification Dropdown */}
+                          <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                            <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                              <UserCog className="w-3.5 h-3.5 text-purple-600" /> Vai trò hiện tại của tài khoản:
+                            </label>
+                            <select
+                              value={acc.role}
+                              onChange={e => handleRoleChangeForUser(acc.username, e.target.value)}
+                              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-purple-500 transition-all cursor-pointer"
+                            >
+                              {roleOptions.filter(o => o.value !== 'all').map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                              {customRoles.map(cr => (
+                                <option key={cr.id} value={cr.name}>{cr.name} (Tùy chỉnh)</option>
+                              ))}
+                            </select>
+                          </div>
+
                           <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700">
                             <p className="text-[11px] font-bold text-slate-500 mb-1.5">Mật khẩu hiện tại:</p>
                             <div className="flex items-center gap-2">
@@ -534,6 +630,123 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ currentAdminUser }) => {
                   <p className="text-xs font-bold">Chưa có nhật ký hoạt động nào phù hợp</p>
                 </div>
               )}
+            </div>
+          </div>
+      {/* Modal Thêm Vai Trò Mới */}
+      {showAddRoleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <UserCog className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <h3 className="font-black text-slate-800 dark:text-white text-base">Tạo Vai Trò Mới Cho Hệ Thống</h3>
+              </div>
+              <button
+                onClick={() => setShowAddRoleModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Tên Vai Trò Mới:</label>
+                <input
+                  type="text"
+                  placeholder="VD: CỜ ĐỎ, LỚP PHÓ VĂN THỂ..."
+                  value={newRoleName}
+                  onChange={e => setNewRoleName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1">Mô tả (tùy chọn):</label>
+                <input
+                  type="text"
+                  placeholder="Mô tả nhiệm vụ vai trò..."
+                  value={newRoleDesc}
+                  onChange={e => setNewRoleDesc(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              {/* Permission Checkboxes */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <p className="text-xs font-black text-slate-700 dark:text-slate-300">Cấu hình phân quyền cho vai trò này:</p>
+                <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700">
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newRolePermissions.canTakeAttendance}
+                      onChange={e => setNewRolePermissions(p => ({ ...p, canTakeAttendance: e.target.checked }))}
+                      className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    />
+                    <span>Quyền Điểm Danh Học Sinh</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newRolePermissions.canEditDuty}
+                      onChange={e => setNewRolePermissions(p => ({ ...p, canEditDuty: e.target.checked }))}
+                      className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    />
+                    <span>Quyền Phân Công Trực Nhật</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newRolePermissions.canEditSeating}
+                      onChange={e => setNewRolePermissions(p => ({ ...p, canEditSeating: e.target.checked }))}
+                      className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    />
+                    <span>Quyền Cấu Hình Sơ Đồ Lớp</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newRolePermissions.canUploadRules}
+                      onChange={e => setNewRolePermissions(p => ({ ...p, canUploadRules: e.target.checked }))}
+                      className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    />
+                    <span>Quyền Quản Lý Quy Định / Nội Quy</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newRolePermissions.canManageStudents}
+                      onChange={e => setNewRolePermissions(p => ({ ...p, canManageStudents: e.target.checked }))}
+                      className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    />
+                    <span>Quyền Thêm / Sửa / Xóa Học Sinh</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer pt-1 border-t border-slate-200 dark:border-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={newRolePermissions.canFullControl}
+                      onChange={e => setNewRolePermissions(p => ({ ...p, canFullControl: e.target.checked }))}
+                      className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                    />
+                    <span className="font-bold text-purple-700 dark:text-purple-300">Toàn Quyền Quản Lý Lớp (Như GVCN)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={handleCreateCustomRole}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" /> Tạo Vai Trò
+                </button>
+                <button
+                  onClick={() => setShowAddRoleModal(false)}
+                  className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold"
+                >
+                  Hủy
+                </button>
+              </div>
             </div>
           </div>
         </div>

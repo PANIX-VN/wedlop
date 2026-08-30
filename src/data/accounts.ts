@@ -1,3 +1,5 @@
+import { CustomRoleDefinition, RolePermissionConfig } from './types';
+
 export type UserRole =
   | 'ADMIN'
   | 'GVCN'
@@ -5,7 +7,8 @@ export type UserRole =
   | 'LỚP TRƯỞNG'
   | 'LỚP PHÓ LAO ĐỘNG'
   | 'LỚP PHÓ KỈ LUẬT'
-  | 'HỌC SINH';
+  | 'HỌC SINH'
+  | string;
 
 export interface UserAccount {
   stt: number;
@@ -68,7 +71,7 @@ export const CLASS_ACCOUNTS: UserAccount[] = [
 export const EMULATION_SHEET_URL =
   'https://docs.google.com/spreadsheets/d/1IHfludq-G0NRLq4g8VDfYBQpODmBcz5c/edit?usp=sharing&ouid=116788871998135363079&rtpof=true&sd=true';
 
-export function getRolePermissions(role?: UserRole) {
+export function getRolePermissions(role?: string, customRolesDefinitions: CustomRoleDefinition[] = []): RolePermissionConfig {
   if (!role) {
     return {
       isAdmin: false,
@@ -78,6 +81,20 @@ export function getRolePermissions(role?: UserRole) {
       canEditSeating: false,
       canUploadRules: false,
       canManageStudents: false,
+    };
+  }
+
+  // Check custom roles first
+  const foundCustom = customRolesDefinitions.find(c => c.name === role);
+  if (foundCustom) {
+    return {
+      isAdmin: !!foundCustom.permissions.isAdmin,
+      canFullControl: !!foundCustom.permissions.canFullControl,
+      canTakeAttendance: !!foundCustom.permissions.canTakeAttendance,
+      canEditDuty: !!foundCustom.permissions.canEditDuty,
+      canEditSeating: !!foundCustom.permissions.canEditSeating,
+      canUploadRules: !!foundCustom.permissions.canUploadRules,
+      canManageStudents: !!foundCustom.permissions.canManageStudents,
     };
   }
 

@@ -87,7 +87,9 @@ export type AuditActionType =
   | 'ATTENDANCE_SAVE'
   | 'DUTY_UPDATE'
   | 'SEATING_UPDATE'
-  | 'RULE_UPDATE';
+  | 'RULE_UPDATE'
+  | 'ROLE_CHANGE'
+  | 'ROLE_CREATE';
 
 export interface AuditLog {
   id: string;
@@ -99,4 +101,22 @@ export interface AuditLog {
   action: AuditActionType;
   details: string;
 }
+
+export interface RolePermissionConfig {
+  isAdmin?: boolean;
+  canFullControl: boolean;
+  canTakeAttendance: boolean;
+  canEditDuty: boolean;
+  canEditSeating: boolean;
+  canUploadRules: boolean;
+  canManageStudents: boolean;
+}
+
+export interface CustomRoleDefinition {
+  id: string;
+  name: string;
+  description?: string;
+  permissions: RolePermissionConfig;
+}
+
 

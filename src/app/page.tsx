@@ -38,7 +38,10 @@ export default function Home() {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [dutyRecords, setDutyRecords] = useState<DynamicDutyRecord[]>([]);
 
-  // Hydrate from LocalStorage & Theme
+  const [customRoles, setCustomRoles] = useState<CustomRoleDefinition[]>([]);
+  const [userRolesMap, setUserRolesMap] = useState<Record<string, string>>({});
+
+  // Hydrate from LocalStorage, Theme & Cloud DB (Two-Way Sync)
   useEffect(() => {
     setStudents(loadStudents());
     setRules(loadRules());
@@ -59,39 +62,78 @@ export default function Home() {
       document.documentElement.classList.toggle('dark', initialTheme === 'dark');
     }
 
-    // Background sync from Cloud API if available
-    try {
-      fetch('/api/seating')
-        .then(res => res.json())
-        .then(json => {
-          if (json && json.data && Array.isArray(json.data) && json.data.length > 0) {
-            setSeatingLayout(json.data);
-            saveSeating(json.data);
-          }
-        })
-        .catch(() => {});
+    // Two-Way Cloud DB Sync: Fetch all data from Vercel Postgres Database
+    const syncAllFromCloudDB = async () => {
+      try {
+        // 1. Sync Students
+        fetch('/api/students')
+          .then(res => res.json())
+          .then(json => {
+            if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
+              setStudents(json.data);
+              saveStudents(json.data);
+            }
+          })
+          .catch(() => {});
 
-      fetch('/api/attendance')
-        .then(res => res.json())
-        .then(json => {
-          if (json && json.data && Array.isArray(json.data) && json.data.length > 0) {
-            setAttendanceRecords(json.data);
-            saveAttendance(json.data);
-          }
-        })
-        .catch(() => {});
+        // 2. Sync Rules
+        fetch('/api/rules')
+          .then(res => res.json())
+          .then(json => {
+            if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
+              setRules(json.data);
+              saveRules(json.data);
+            }
+          })
+          .catch(() => {});
 
-      fetch('/api/duty')
-        .then(res => res.json())
-        .then(json => {
-          if (json && json.data && Array.isArray(json.data) && json.data.length > 0) {
-            setDutyRecords(json.data);
-            saveDutyRecords(json.data);
-          }
-        })
-        .catch(() => {});
-    } catch (e) {}
+        // 3. Sync Seating
+        fetch('/api/seating')
+          .then(res => res.json())
+          .then(json => {
+            if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
+              setSeatingLayout(json.data);
+              saveSeating(json.data);
+            }
+          })
+          .catch(() => {});
 
+        // 4. Sync Attendance
+        fetch('/api/attendance')
+          .then(res => res.json())
+          .then(json => {
+            if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
+              setAttendanceRecords(json.data);
+              saveAttendance(json.data);
+            }
+          })
+          .catch(() => {});
+
+        // 5. Sync Duty
+        fetch('/api/duty')
+          .then(res => res.json())
+          .then(json => {
+            if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
+              setDutyRecords(json.data);
+              saveDutyRecords(json.data);
+            }
+          })
+          .catch(() => {});
+
+        // 6. Sync Custom Roles & User Role Assignments
+        fetch('/api/roles')
+          .then(res => res.json())
+          .then(json => {
+            if (json?.success) {
+              if (json.userRoles) setUserRolesMap(json.userRoles);
+              if (Array.isArray(json.customRoles)) setCustomRoles(json.customRoles);
+            }
+          })
+          .catch(() => {});
+      } catch (e) {}
+    };
+
+    syncAllFromCloudDB();
     setIsLoaded(true);
   }, []);
 
@@ -105,8 +147,9 @@ export default function Home() {
   // Auto screen layout detection
   const screenLayout = useScreenLayout();
 
-  // Compute permissions based on logged in user's role
-  const permissions = getRolePermissions(currentUser?.role);
+  // Compute permissions based on logged in user's role (checking custom user roles + custom role definitions)
+  const effectiveRole = (currentUser && userRolesMap[currentUser.username]) ? userRolesMap[currentUser.username] : currentUser?.role;
+  const permissions = getRolePermissions(effectiveRole, customRoles);
 
   // Sync state changes to storage & audit trail
   const handleUpdateSeating = (newLayout: ColumnRow[]) => {
