@@ -16,6 +16,7 @@ interface NavbarProps {
   onToggleTheme: () => void;
   isAdmin?: boolean;
   canManageStudents?: boolean;
+  onOpenEmulationModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -29,6 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleTheme,
   isAdmin = false,
   canManageStudents = false,
+  onOpenEmulationModal,
 }) => {
   // Live Vietnam Clock
   const [vnTimeStr, setVnTimeStr] = useState<string>('');
@@ -54,13 +56,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const tabs = [
-    { id: 'seating', label: 'Sơ Đồ Lớp', icon: LayoutGrid, external: false, color: null },
-    { id: 'attendance', label: 'Điểm Danh', icon: ClipboardCheck, external: false, color: null },
-    { id: 'emulation', label: 'Thi Đua', icon: Award, external: true, url: EMULATION_SHEET_URL, color: null },
-    { id: 'rules', label: 'Tra Cứu', icon: FileSearch, external: false, color: null },
-    { id: 'duty', label: 'Trực Nhật', icon: Calendar, external: false, color: null },
-    ...(canManageStudents ? [{ id: 'students', label: 'Học Sinh', icon: UserCog, external: false, color: 'blue' as const }] : []),
-    ...(isAdmin ? [{ id: 'admin', label: 'Quản Lý TK', icon: ShieldAlert, external: false, color: 'red' as const }] : []),
+    { id: 'seating', label: 'Sơ Đồ Lớp', icon: LayoutGrid, isEmulation: false, color: null },
+    { id: 'attendance', label: 'Điểm Danh', icon: ClipboardCheck, isEmulation: false, color: null },
+    { id: 'emulation', label: 'Thi Đua', icon: Award, isEmulation: true, color: 'amber' as const },
+    { id: 'duty', label: 'Trực Nhật', icon: Calendar, isEmulation: false, color: null },
+    ...(canManageStudents ? [{ id: 'students', label: 'Học Sinh', icon: UserCog, isEmulation: false, color: 'blue' as const }] : []),
+    ...(isAdmin ? [{ id: 'admin', label: 'Quản Lý TK', icon: ShieldAlert, isEmulation: false, color: 'red' as const }] : []),
   ];
 
   const getRoleBadgeStyle = (role?: string) => {
@@ -118,29 +119,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             <nav className="hidden lg:flex items-center space-x-1.5 bg-slate-100/70 dark:bg-slate-800/70 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700">
               {tabs.map(tab => {
                 const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-
-                if (tab.external) {
-                  return (
-                    <a
-                      key={tab.id}
-                      href={tab.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-amber-800 dark:text-amber-300 hover:bg-amber-100/80 dark:hover:bg-amber-900/30 transition-all border border-amber-200/80 dark:border-amber-700/50 shadow-2xs"
-                      title="Mở Google Sheet theo dõi điểm thi đua lớp 11A7"
-                    >
-                      <Icon className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                      <span>{tab.label}</span>
-                      <ExternalLink className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                    </a>
-                  );
-                }
+                const isActive = activeTab === tab.id || (tab.id === 'emulation' && activeTab === 'rules');
 
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => {
+                      if (tab.isEmulation) {
+                        onOpenEmulationModal();
+                      } else {
+                        setActiveTab(tab.id);
+                      }
+                    }}
                     className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                       tab.color === 'red'
                         ? isActive
@@ -150,6 +140,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                         ? isActive
                           ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm'
                           : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/50'
+                        : tab.color === 'amber'
+                        ? isActive
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm'
+                          : 'text-amber-700 dark:text-amber-300 hover:bg-amber-100/80 dark:hover:bg-amber-900/30 border border-amber-200/80 dark:border-amber-700/50'
                         : isActive
                         ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 font-extrabold shadow-sm border border-slate-200/80 dark:border-slate-700'
                         : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800'
@@ -160,6 +154,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                         ? isActive ? 'text-white' : 'text-red-500 dark:text-red-400'
                         : tab.color === 'blue'
                         ? isActive ? 'text-white' : 'text-blue-500 dark:text-blue-400'
+                        : tab.color === 'amber'
+                        ? isActive ? 'text-white' : 'text-amber-500 dark:text-amber-400'
                         : isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
                     }`} />
                     <span>{tab.label}</span>
@@ -216,27 +212,18 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="lg:hidden flex overflow-x-auto py-2 px-3 space-x-1.5 border-t border-slate-100 dark:border-slate-800 no-scrollbar bg-slate-50/60 dark:bg-slate-900/60">
           {tabs.map(tab => {
             const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-
-            if (tab.external) {
-              return (
-                <a
-                  key={tab.id}
-                  href={tab.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-700/50 whitespace-nowrap shadow-2xs"
-                >
-                  <Icon className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                  <span>{tab.label} 🔗</span>
-                </a>
-              );
-            }
+            const isActive = activeTab === tab.id || (tab.id === 'emulation' && activeTab === 'rules');
 
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.isEmulation) {
+                    onOpenEmulationModal();
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
                 className={`flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20'
@@ -257,25 +244,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
 
-          if (tab.external) {
-            return (
-              <a
-                key={tab.id}
-                href={tab.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center p-1.5 text-amber-700 dark:text-amber-400 text-[10px] font-bold"
-              >
-                <Icon className="w-4 h-4" />
-                <span className="text-[9px]">Thi Đua</span>
-              </a>
-            );
-          }
-
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                if (tab.isEmulation) {
+                  onOpenEmulationModal();
+                } else {
+                  setActiveTab(tab.id);
+                }
+              }}
               className={`flex flex-col items-center justify-center p-1.5 rounded-xl text-[10px] font-bold transition-all ${
                 isActive ? 'text-blue-600 dark:text-blue-400 font-extrabold scale-105' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}

@@ -10,6 +10,7 @@ import { LoginModal } from '../components/LoginModal';
 import { AdminPanel } from '../components/Admin/AdminPanel';
 import { StudentManager } from '../components/Admin/StudentManager';
 import { DevToolsProtection } from '../components/DevToolsProtection';
+import { EmulationChoiceModal } from '../components/EmulationChoiceModal';
 
 import { Student, RuleItem, ColumnRow, AttendanceRecord, DynamicDutyRecord, AuthUser, CustomRoleDefinition } from '../data/types';
 import { INITIAL_STUDENTS, INITIAL_RULES, INITIAL_SEATING_LAYOUT, INITIAL_DUTY_TASKS } from '../data/initialData';
@@ -29,6 +30,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('seating');
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isEmulationChoiceOpen, setIsEmulationChoiceOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
@@ -231,6 +233,7 @@ export default function Home() {
         onToggleTheme={handleToggleTheme}
         isAdmin={permissions.isAdmin}
         canManageStudents={permissions.canManageStudents}
+        onOpenEmulationModal={() => setIsEmulationChoiceOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -316,6 +319,13 @@ export default function Home() {
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         onLoginSuccess={handleLoginSuccess}
+      />
+
+      {/* Emulation & Rules Choice Modal */}
+      <EmulationChoiceModal
+        isOpen={isEmulationChoiceOpen}
+        onClose={() => setIsEmulationChoiceOpen(false)}
+        onSelectLookup={() => setActiveTab('rules')}
       />
 
       {/* Footer */}
