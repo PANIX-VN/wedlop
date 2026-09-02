@@ -71,6 +71,9 @@ export const CLASS_ACCOUNTS: UserAccount[] = [
 export const EMULATION_SHEET_URL =
   'https://docs.google.com/spreadsheets/d/1IHfludq-G0NRLq4g8VDfYBQpODmBcz5c/edit?usp=sharing&ouid=116788871998135363079&rtpof=true&sd=true';
 
+export const ACTIVITY_ASSIGNMENT_SHEET_URL =
+  'https://docs.google.com/spreadsheets/d/1Q2yjfAsavS4f75b0q7QaDVruUqASrNS1zavXLVPOil4/edit?usp=sharing';
+
 export function getRolePermissions(role?: string, customRolesDefinitions: CustomRoleDefinition[] = []): RolePermissionConfig {
   if (!role) {
     return {
